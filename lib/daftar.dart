@@ -12,20 +12,30 @@ class _DaftarPageState extends State<DaftarPage> {
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _fullNameController = TextEditingController();
+  final _dobController = TextEditingController(); // Tanggal Lahir
+  final _phoneController = TextEditingController();
 
   void _register() {
     final username = _usernameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
+    final fullName = _fullNameController.text.trim();
+    final dob = _dobController.text.trim();
+    final phone = _phoneController.text.trim();
 
-    if (username.isEmpty || email.isEmpty || password.isEmpty) {
+    if (username.isEmpty ||
+        email.isEmpty ||
+        password.isEmpty ||
+        fullName.isEmpty ||
+        dob.isEmpty ||
+        phone.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Isi semua field terlebih dahulu")),
       );
       return;
     }
 
-    // setelah daftar sukses -> balik ke LoginPage
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Akun berhasil dibuat! Silakan login")),
     );
@@ -68,6 +78,60 @@ class _DaftarPageState extends State<DaftarPage> {
                 ),
                 const SizedBox(height: 20),
 
+                // Nama Lengkap
+                const Text("Nama Lengkap", style: TextStyle(color: Colors.white)),
+                const SizedBox(height: 5),
+                TextField(
+                  controller: _fullNameController,
+                  decoration: InputDecoration(
+                    hintText: "Masukkan nama lengkap",
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 15),
+
+                // Tanggal Lahir
+                const Text("Tanggal Lahir", style: TextStyle(color: Colors.white)),
+                const SizedBox(height: 5),
+                TextField(
+                  controller: _dobController,
+                  decoration: InputDecoration(
+                    hintText: "DD/MM/YYYY",
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  keyboardType: TextInputType.datetime,
+                ),
+                const SizedBox(height: 15),
+
+                // Nomor HP
+                const Text("No. Handphone", style: TextStyle(color: Colors.white)),
+                const SizedBox(height: 5),
+                TextField(
+                  controller: _phoneController,
+                  decoration: InputDecoration(
+                    hintText: "Masukkan nomor HP",
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  keyboardType: TextInputType.phone,
+                ),
+                const SizedBox(height: 15),
+
+                // Username
                 const Text("Nama Pengguna", style: TextStyle(color: Colors.white)),
                 const SizedBox(height: 5),
                 TextField(
@@ -84,6 +148,7 @@ class _DaftarPageState extends State<DaftarPage> {
                 ),
                 const SizedBox(height: 15),
 
+                // Email
                 const Text("Email", style: TextStyle(color: Colors.white)),
                 const SizedBox(height: 5),
                 TextField(
@@ -97,9 +162,11 @@ class _DaftarPageState extends State<DaftarPage> {
                       borderSide: BorderSide.none,
                     ),
                   ),
+                  keyboardType: TextInputType.emailAddress,
                 ),
                 const SizedBox(height: 15),
 
+                // Password
                 const Text("Password", style: TextStyle(color: Colors.white)),
                 const SizedBox(height: 5),
                 TextField(
@@ -117,6 +184,7 @@ class _DaftarPageState extends State<DaftarPage> {
                 ),
                 const SizedBox(height: 20),
 
+                // Tombol Daftar
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -137,6 +205,7 @@ class _DaftarPageState extends State<DaftarPage> {
                 ),
                 const SizedBox(height: 15),
 
+                // Link ke Login
                 Center(
                   child: GestureDetector(
                     onTap: () {
