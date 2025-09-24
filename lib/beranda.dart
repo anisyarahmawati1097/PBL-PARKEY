@@ -1,0 +1,205 @@
+import 'package:flutter/material.dart';
+
+class BerandaPage extends StatefulWidget {
+  final String username;
+  const BerandaPage({super.key, required this.username});
+  @override
+  State<BerandaPage> createState() => _BerandaPageState();
+}
+
+class _BerandaPageState extends State<BerandaPage> {
+  int _selectedIndex = 0;
+  void _onItemTapped(int index) => setState(() => _selectedIndex = index);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF6A994E),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF6A994E),
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        title: Row(
+          children: [
+            Image.asset("assets/logo_parqrin.png", height: 32),
+            const SizedBox(width: 10),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Halo, ${widget.username}",
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16)),
+                const SizedBox(height: 4),
+                const Text("Mau kemana hari ini?",
+                    style: TextStyle(color: Colors.white70, fontSize: 12)),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          IconButton(
+              onPressed: () {},
+              icon: const Icon(Icons.notifications, color: Colors.white)),
+        ],
+      ),
+      body: Column(
+        children: [
+          // Card saldo
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                  color: const Color(0xFFE0FFC2),
+                  borderRadius: BorderRadius.circular(10)),
+              child: Row(
+                children: const [
+                  Icon(Icons.credit_card, color: Colors.black),
+                  SizedBox(width: 12),
+                  Expanded(
+                      child: Text("CARD",
+                          style: TextStyle(fontWeight: FontWeight.bold))),
+                  Text("IDR -", style: TextStyle(fontWeight: FontWeight.bold)),
+                  SizedBox(width: 6),
+                  Icon(Icons.arrow_forward_ios,
+                      size: 14, color: Colors.black),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // White content container
+          Expanded(
+            child: Container(
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(24),
+                    topRight: Radius.circular(24)),
+              ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(16, 20, 16, 80),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Search bar
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE0FFC2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const TextField(
+                        decoration: InputDecoration(
+                          icon: Icon(Icons.search, color: Colors.black54),
+                          hintText: "Cari Tempat Parkir",
+                          border: InputBorder.none,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+
+                    // Icon Lokasi & QR
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Column(children: const [
+                          Icon(Icons.location_on, size: 34),
+                          SizedBox(height: 6),
+                          Text("Lokasi")
+                        ]),
+                        Column(children: const [
+                          Icon(Icons.qr_code, size: 34),
+                          SizedBox(height: 6),
+                          Text("QR")
+                        ]),
+                      ],
+                    ),
+                    const SizedBox(height: 18),
+
+                    const Text("Tempat parkir yang tersedia",
+                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 10),
+
+                    _buildParkirCard(
+                        "Grand Batam Mall",
+                        "Jl. Pembangunan, Batu Selicin, Kec. Lubuk Baja, Kota Batam",
+                        "assets/gm.jpeg",
+                        "2.2 Km"),
+                    _buildParkirCard(
+                        "SNL Food Tanjung Uma",
+                        "Jodoh, kawasan baru priayang, Jl. Tj Uma, Kota Batam",
+                        "assets/snl.jpg",
+                        "3.2 Km"),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+
+      // Bottom nav
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: const Color(0xFF386641),
+        selectedItemColor: const Color(0xFFE0FFC2),
+        unselectedItemColor: Colors.white,
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        type: BottomNavigationBarType.fixed,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Beranda"),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.list_alt), label: "Aktivitas"),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.qr_code_scanner), label: "Bayar"),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.account_balance_wallet), label: "Dompet"),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Akun"),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildParkirCard(
+      String title, String subtitle, String imagePath, String distance) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: const [
+            BoxShadow(
+                color: Color(0x12000000), blurRadius: 6, offset: Offset(0, 3))
+          ]),
+      child: Row(
+        children: [
+          ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(imagePath,
+                  width: 86, height: 64, fit: BoxFit.cover)),
+          const SizedBox(width: 12),
+          Expanded(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 6),
+                Text(subtitle,
+                    maxLines: 2, overflow: TextOverflow.ellipsis),
+                const SizedBox(height: 6),
+                Text(distance, style: const TextStyle(color: Colors.blue)),
+              ])),
+          const Icon(Icons.more_vert)
+        ],
+      ),
+    );
+  }
+}
