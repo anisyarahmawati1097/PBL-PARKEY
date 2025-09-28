@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'aktivitas.dart';
 import 'dompet.dart';
 import 'akun.dart';
+import 'lokasi.dart'; // tambahkan ini
 
 class BerandaPage extends StatefulWidget {
   final String? username; // opsional
@@ -25,7 +26,6 @@ class _BerandaPageState extends State<BerandaPage> {
         MaterialPageRoute(builder: (_) => const AktivitasPage()),
       );
     } else if (index == 2) {
-      // halaman Bayar (sementara kosong)
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Fitur Bayar belum tersedia")),
       );
@@ -167,11 +167,20 @@ class _BerandaPageState extends State<BerandaPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      Column(children: const [
-                        Icon(Icons.location_on, size: 34),
-                        SizedBox(height: 6),
-                        Text("Lokasi")
-                      ]),
+                      // Lokasi bisa ditekan
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => LokasiPage()),
+                          );
+                        },
+                        child: Column(children: const [
+                          Icon(Icons.location_on, size: 34),
+                          SizedBox(height: 6),
+                          Text("Lokasi")
+                        ]),
+                      ),
                       Column(children: const [
                         Icon(Icons.qr_code, size: 34),
                         SizedBox(height: 6),
