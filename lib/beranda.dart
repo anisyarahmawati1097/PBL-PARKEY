@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'aktivitas.dart';
 import 'dompet.dart';
 import 'akun.dart';
-import 'lokasi.dart'; // tambahkan ini
+import 'lokasi.dart'; 
+import 'bc.dart'; // biar QR jalan juga
 
 class BerandaPage extends StatefulWidget {
-  final String? username; // opsional
-  final String? email;    // opsional
+  final String? username;
+  final String? email;
 
   const BerandaPage({super.key, this.username, this.email});
 
@@ -19,7 +20,7 @@ class _BerandaPageState extends State<BerandaPage> {
 
   void _onItemTapped(int index) {
     if (index == 0) {
-      setState(() => _selectedIndex = 0); // tetap di beranda
+      setState(() => _selectedIndex = 0);
     } else if (index == 1) {
       Navigator.push(
         context,
@@ -102,11 +103,9 @@ class _BerandaPageState extends State<BerandaPage> {
     );
   }
 
-  // isi konten beranda
   Widget _buildBerandaContent() {
     return Column(
       children: [
-        // saldo card
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Container(
@@ -146,7 +145,6 @@ class _BerandaPageState extends State<BerandaPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // search bar
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     decoration: BoxDecoration(
@@ -163,11 +161,9 @@ class _BerandaPageState extends State<BerandaPage> {
                   ),
                   const SizedBox(height: 18),
 
-                  // icon lokasi & qr
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      // Lokasi bisa ditekan
                       GestureDetector(
                         onTap: () {
                           Navigator.push(
@@ -181,11 +177,21 @@ class _BerandaPageState extends State<BerandaPage> {
                           Text("Lokasi")
                         ]),
                       ),
-                      Column(children: const [
-                        Icon(Icons.qr_code, size: 34),
-                        SizedBox(height: 6),
-                        Text("QR")
-                      ]),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const QRCodePage(),
+                            ),
+                          );
+                        },
+                        child: Column(children: const [
+                          Icon(Icons.qr_code, size: 34),
+                          SizedBox(height: 6),
+                          Text("QR")
+                        ]),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 18),
