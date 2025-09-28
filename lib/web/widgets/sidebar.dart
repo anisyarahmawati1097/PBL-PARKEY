@@ -2,15 +2,24 @@ import 'package:flutter/material.dart';
 
 class Sidebar extends StatelessWidget {
   final Function(String) onMenuTap;
-  const Sidebar({super.key, required this.onMenuTap});
+  final String currentPage;
+
+  const Sidebar({
+    super.key,
+    required this.onMenuTap,
+    this.currentPage = "dashboard",
+  });
 
   @override
   Widget build(BuildContext context) {
     return Drawer(
       child: ListView(
+        padding: EdgeInsets.zero,
         children: [
           const DrawerHeader(
-            decoration: BoxDecoration(color: Colors.green),
+            decoration: BoxDecoration(
+              color: Colors.green,
+            ),
             child: Center(
               child: Text(
                 "Admin Panel",
@@ -18,28 +27,28 @@ class Sidebar extends StatelessWidget {
               ),
             ),
           ),
-          ListTile(
-            leading: const Icon(Icons.dashboard),
-            title: const Text("Dashboard"),
-            onTap: () => onMenuTap("dashboard"),
-          ),
-          ListTile(
-            leading: const Icon(Icons.motorcycle),
-            title: const Text("Pengendara"),
-            onTap: () => onMenuTap("pengendara"),
-          ),
-          ListTile(
-            leading: const Icon(Icons.location_on),
-            title: const Text("Lokasi Parkir"),
-            onTap: () => onMenuTap("lokasi"),
-          ),
-          ListTile(
-            leading: const Icon(Icons.receipt_long),
-            title: const Text("Laporan"),
-            onTap: () => onMenuTap("laporan"),
-          ),
+          _buildMenuItem(Icons.dashboard, "Dashboard", "dashboard"),
+          _buildMenuItem(Icons.motorcycle, "Pengendara", "pengendara"),
+          _buildMenuItem(Icons.location_on, "Lokasi Parkir", "lokasi"),
+          _buildMenuItem(Icons.receipt_long, "Laporan", "laporan"),
         ],
       ),
+    );
+  }
+
+  Widget _buildMenuItem(IconData icon, String title, String pageKey) {
+    final bool isActive = currentPage == pageKey;
+    return ListTile(
+      leading: Icon(icon, color: isActive ? Colors.green : Colors.black54),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: isActive ? Colors.green : Colors.black87,
+          fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+        ),
+      ),
+      selected: isActive,
+      onTap: () => onMenuTap(pageKey),
     );
   }
 }

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class Header extends StatelessWidget implements PreferredSizeWidget {
-  const Header({super.key});
+  final String title;
+  const Header({super.key, this.title = "Dashboard Admin"});
 
   @override
   Size get preferredSize => const Size.fromHeight(60);
@@ -9,11 +10,16 @@ class Header extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: Colors.green,
-      title: const Text(
-        "Dashboard Admin",
-        style: TextStyle(fontWeight: FontWeight.bold),
+      backgroundColor: Colors.white,
+      elevation: 2,
+      title: Text(
+        title,
+        style: const TextStyle(
+          color: Colors.green,
+          fontWeight: FontWeight.bold,
+        ),
       ),
+      iconTheme: const IconThemeData(color: Colors.green),
       actions: [
         IconButton(
           icon: const Icon(Icons.notifications),
