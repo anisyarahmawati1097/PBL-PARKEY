@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'aktivitas.dart';
 import 'dompet.dart';
 import 'akun.dart';
+import 'bc.dart'; 
 
 class BerandaPage extends StatefulWidget {
   final String? username; // opsional
@@ -172,11 +173,22 @@ class _BerandaPageState extends State<BerandaPage> {
                         SizedBox(height: 6),
                         Text("Lokasi")
                       ]),
-                      Column(children: const [
-                        Icon(Icons.qr_code, size: 34),
-                        SizedBox(height: 6),
-                        Text("QR")
-                      ]),
+                      // <<< Bagian ini diubah pakai GestureDetector
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const QRCodePage(), // buka bc.dart
+                            ),
+                          );
+                        },
+                        child: Column(children: const [
+                          Icon(Icons.qr_code, size: 34),
+                          SizedBox(height: 6),
+                          Text("QR")
+                        ]),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 18),
