@@ -4,12 +4,18 @@ class ItpPage extends StatelessWidget {
   final String nama;
   final String alamat;
   final String gambar;
+  final String deskripsi;
+  final String tarifMobil;
+  final String tarifMotor;
 
   const ItpPage({
     super.key,
     required this.nama,
     required this.alamat,
     required this.gambar,
+    required this.deskripsi,
+    required this.tarifMobil,
+    required this.tarifMotor,
   });
 
   @override
@@ -51,8 +57,9 @@ class ItpPage extends StatelessWidget {
                 children: [
                   ClipRRect(
                     borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(12),
-                        topRight: Radius.circular(12)),
+                      topLeft: Radius.circular(12),
+                      topRight: Radius.circular(12),
+                    ),
                     child: Image.asset(
                       gambar,
                       width: double.infinity,
@@ -105,9 +112,9 @@ class ItpPage extends StatelessWidget {
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
             ),
             const SizedBox(height: 8),
-            const Text(
-              "Operated by Centrepark\nThis location is located at most prestigious location in Riau",
-              style: TextStyle(fontSize: 13, color: Colors.black87),
+            Text(
+              deskripsi,
+              style: const TextStyle(fontSize: 13, color: Colors.black87),
             ),
 
             const SizedBox(height: 20),
@@ -123,9 +130,9 @@ class ItpPage extends StatelessWidget {
               "Tarif Mobil",
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            const Text(
-              "2 Jam Pertama IDR 5000\nJam Berikutnya IDR 2000/Jam",
-              style: TextStyle(fontSize: 13),
+            Text(
+              tarifMobil,
+              style: const TextStyle(fontSize: 13),
             ),
 
             const SizedBox(height: 12),
@@ -134,9 +141,9 @@ class ItpPage extends StatelessWidget {
               "Tarif Motor",
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            const Text(
-              "2 Jam Pertama IDR 2000\nJam Berikutnya IDR 1000/Jam",
-              style: TextStyle(fontSize: 13),
+            Text(
+              tarifMotor,
+              style: const TextStyle(fontSize: 13),
             ),
           ],
         ),

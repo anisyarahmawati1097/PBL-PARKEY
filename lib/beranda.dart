@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'aktivitas.dart';
 import 'dompet.dart';
 import 'akun.dart';
-import 'lokasi.dart'; 
-import 'bc.dart'; // biar QR jalan juga
+import 'lokasi.dart';
+import 'bc.dart';
+import 'itp.dart'; // import halaman detail
 
 class BerandaPage extends StatefulWidget {
   final String? username;
@@ -137,8 +138,9 @@ class _BerandaPageState extends State<BerandaPage> {
             decoration: const BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(24),
-                  topRight: Radius.circular(24)),
+                topLeft: Radius.circular(24),
+                topRight: Radius.circular(24),
+              ),
             ),
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(16, 20, 16, 80),
@@ -201,15 +203,29 @@ class _BerandaPageState extends State<BerandaPage> {
                   const SizedBox(height: 10),
 
                   _buildParkirCard(
-                      "Grand Batam Mall",
-                      "Jl. Pembangunan, Batu Selicin, Kec. Lubuk Baja, Kota Batam",
-                      "assets/gm.jpeg",
-                      "2.2 Km"),
+                    "Grand Batam Mall",
+                    "Jl. Pembangunan, Batu Selicin, Kec. Lubuk Baja, Kota Batam",
+                    "assets/gm.jpeg",
+                    "2.2 Km",
+                    deskripsi:
+                        "Operated by Centrepark. Lokasi strategis di pusat kota Batam.",
+                    tarifMobil:
+                        "2 Jam Pertama IDR 5000\nJam Berikutnya IDR 2000/Jam",
+                    tarifMotor:
+                        "2 Jam Pertama IDR 2000\nJam Berikutnya IDR 1000/Jam",
+                  ),
                   _buildParkirCard(
-                      "SNL Food Tanjung Uma",
-                      "Jodoh, kawasan baru priayang, Jl. Tj Uma, Kota Batam",
-                      "assets/snl.jpg",
-                      "3.2 Km"),
+                    "SNL Food Tanjung Uma",
+                    "Jodoh, kawasan baru priayang, Jl. Tj Uma, Kota Batam",
+                    "assets/snl.jpg",
+                    "3.2 Km",
+                    deskripsi:
+                        "Tempat parkir dekat pusat kuliner Tanjung Uma, ramai setiap malam.",
+                    tarifMobil:
+                        "1 Jam Pertama IDR 4000\nJam Berikutnya IDR 2000/Jam",
+                    tarifMotor:
+                        "1 Jam Pertama IDR 1500\nJam Berikutnya IDR 1000/Jam",
+                  ),
                 ],
               ),
             ),
@@ -220,43 +236,77 @@ class _BerandaPageState extends State<BerandaPage> {
   }
 
   Widget _buildParkirCard(
-      String title, String subtitle, String imagePath, String distance) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
-          BoxShadow(
-              color: Color(0x12000000), blurRadius: 6, offset: Offset(0, 3))
-        ],
-      ),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.asset(imagePath,
-                width: 86, height: 64, fit: BoxFit.cover),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title,
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 6),
-                Text(subtitle,
-                    maxLines: 2, overflow: TextOverflow.ellipsis),
-                const SizedBox(height: 6),
-                Text(distance,
-                    style: const TextStyle(color: Colors.blue)),
-              ],
+    String title,
+    String subtitle,
+    String imagePath,
+    String distance, {
+    required String deskripsi,
+    required String tarifMobil,
+    required String tarifMotor,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ItpPage(
+              nama: title,
+              alamat: subtitle,
+              gambar: imagePath,
+              deskripsi: deskripsi,
+              tarifMobil: tarifMobil,
+              tarifMotor: tarifMotor,
             ),
           ),
-          const Icon(Icons.more_vert),
-        ],
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x12000000),
+              blurRadius: 6,
+              offset: Offset(0, 3),
+            )
+          ],
+        ),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(
+                imagePath,
+                width: 86,
+                height: 64,
+                fit: BoxFit.cover,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 6),
+                  Text(
+                    subtitle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(distance,
+                      style: const TextStyle(color: Colors.blue)),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios, size: 16),
+          ],
+        ),
       ),
     );
   }
