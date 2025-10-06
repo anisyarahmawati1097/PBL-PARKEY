@@ -5,11 +5,13 @@ import 'pengaturan_profil.dart';
 class AkunPage extends StatelessWidget {
   final String username;
   final String email;
+  final String phone;
 
   const AkunPage({
     super.key,
     required this.username,
     required this.email,
+    required this.phone,
   });
 
   @override
@@ -21,7 +23,6 @@ class AkunPage extends StatelessWidget {
       ),
       body: ListView(
         children: [
-          // Header akun
           ListTile(
             leading: const CircleAvatar(
               backgroundColor: Colors.green,
@@ -31,8 +32,6 @@ class AkunPage extends StatelessWidget {
             subtitle: Text(email),
           ),
           const Divider(),
-
-          // Tambah Kendaraan
           ListTile(
             leading: const Icon(Icons.directions_car, color: Colors.green),
             title: const Text("Tambah Kendaraan"),
@@ -40,14 +39,10 @@ class AkunPage extends StatelessWidget {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => TambahKendaraanPage(), // tanpa const
-                ),
+                MaterialPageRoute(builder: (_) => const TambahKendaraanPage()),
               );
             },
           ),
-
-          // Pengaturan Profil
           ListTile(
             leading: const Icon(Icons.settings, color: Colors.green),
             title: const Text("Pengaturan Profil"),
@@ -56,15 +51,15 @@ class AkunPage extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => PengaturanProfilPage(), // tanpa const
+                  builder: (_) => PengaturanProfilPage(
+                    username: username,
+                    email: email,
+                    phone: phone,
+                  ),
                 ),
               );
             },
           ),
-
-          const Divider(),
-
-        
         ],
       ),
     );

@@ -4,7 +4,7 @@ import 'dompet.dart';
 import 'akun.dart';
 import 'lokasi.dart';
 import 'bc.dart';
-import 'itp.dart'; // import halaman detail
+import 'itp.dart'; // halaman detail
 
 class BerandaPage extends StatefulWidget {
   final String? username;
@@ -20,32 +20,40 @@ class _BerandaPageState extends State<BerandaPage> {
   int _selectedIndex = 0;
 
   void _onItemTapped(int index) {
-    if (index == 0) {
-      setState(() => _selectedIndex = 0);
-    } else if (index == 1) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const AktivitasPage()),
-      );
-    } else if (index == 2) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Fitur Bayar belum tersedia")),
-      );
-    } else if (index == 3) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const DompetPage()),
-      );
-    } else if (index == 4) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => AkunPage(
-            username: widget.username ?? "User",
-            email: widget.email ?? "user@email.com",
-          ),
-        ),
-      );
+    switch (index) {
+      case 0:
+        setState(() => _selectedIndex = 0);
+        break;
+      case 1:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AktivitasPage()),
+        );
+        break;
+      case 2:
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Fitur Bayar belum tersedia")),
+        );
+        break;
+      case 3:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const DompetPage()),
+        );
+        break;
+      case 4:
+        Navigator.push(
+  context,
+  MaterialPageRoute(
+    builder: (_) => AkunPage(
+      username: widget.username ?? "User",
+      email: widget.email ?? "user@email.com",
+      phone: "081234567890", // default sementara
+    ),
+  ),
+);
+
+        break;
     }
   }
 
@@ -67,13 +75,16 @@ class _BerandaPageState extends State<BerandaPage> {
                 Text(
                   "Halo, ${widget.username ?? 'User'}",
                   style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16),
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
                 ),
                 const SizedBox(height: 4),
-                const Text("Mau kemana hari ini?",
-                    style: TextStyle(color: Colors.white70, fontSize: 12)),
+                const Text(
+                  "Mau kemana hari ini?",
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                ),
               ],
             ),
           ],
@@ -120,8 +131,10 @@ class _BerandaPageState extends State<BerandaPage> {
                 Icon(Icons.credit_card, color: Colors.black),
                 SizedBox(width: 12),
                 Expanded(
-                  child: Text("CARD",
-                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  child: Text(
+                    "CARD",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
                 Text("IDR -", style: TextStyle(fontWeight: FontWeight.bold)),
                 SizedBox(width: 6),
@@ -131,7 +144,6 @@ class _BerandaPageState extends State<BerandaPage> {
           ),
         ),
         const SizedBox(height: 16),
-
         Expanded(
           child: Container(
             width: double.infinity,
@@ -162,7 +174,6 @@ class _BerandaPageState extends State<BerandaPage> {
                     ),
                   ),
                   const SizedBox(height: 18),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -173,35 +184,37 @@ class _BerandaPageState extends State<BerandaPage> {
                             MaterialPageRoute(builder: (_) => LokasiPage()),
                           );
                         },
-                        child: Column(children: const [
-                          Icon(Icons.location_on, size: 34),
-                          SizedBox(height: 6),
-                          Text("Lokasi")
-                        ]),
+                        child: Column(
+                          children: const [
+                            Icon(Icons.location_on, size: 34),
+                            SizedBox(height: 6),
+                            Text("Lokasi"),
+                          ],
+                        ),
                       ),
                       GestureDetector(
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                              builder: (_) => const QRCodePage(),
-                            ),
+                            MaterialPageRoute(builder: (_) => const QRCodePage()),
                           );
                         },
-                        child: Column(children: const [
-                          Icon(Icons.qr_code, size: 34),
-                          SizedBox(height: 6),
-                          Text("QR")
-                        ]),
+                        child: Column(
+                          children: const [
+                            Icon(Icons.qr_code, size: 34),
+                            SizedBox(height: 6),
+                            Text("QR"),
+                          ],
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 18),
-
-                  const Text("Tempat parkir yang tersedia",
-                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text(
+                    "Tempat Terakhir yang Anda Kunjungi",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 10),
-
                   _buildParkirCard(
                     "Grand Batam Mall",
                     "Jl. Pembangunan, Batu Selicin, Kec. Lubuk Baja, Kota Batam",
@@ -271,7 +284,7 @@ class _BerandaPageState extends State<BerandaPage> {
               color: Color(0x12000000),
               blurRadius: 6,
               offset: Offset(0, 3),
-            )
+            ),
           ],
         ),
         child: Row(

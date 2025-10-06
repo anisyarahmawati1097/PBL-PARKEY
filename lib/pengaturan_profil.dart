@@ -1,39 +1,46 @@
 import 'package:flutter/material.dart';
+import 'login.dart';
 
 class PengaturanProfilPage extends StatelessWidget {
-  const PengaturanProfilPage({super.key});
+  final String username;
+  final String email;
+  final String phone;
+
+  const PengaturanProfilPage({
+    super.key,
+    required this.username,
+    required this.email,
+    required this.phone,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Akun"),
+        title: const Text("Pengaturan Profil"),
         backgroundColor: const Color(0xFF6A994E),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // Header profil
-            const ListTile(
-              leading: CircleAvatar(
+            ListTile(
+              leading: const CircleAvatar(
                 radius: 28,
                 backgroundColor: Colors.grey,
                 child: Icon(Icons.person, size: 36, color: Colors.white),
               ),
-              title: Text("raniyaa",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
+              title: Text(username, style: const TextStyle(fontWeight: FontWeight.bold)),
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("6281234567890"),
-                  Text("example@email.com"),
+                  Text(phone),
+                  Text(email),
                 ],
               ),
             ),
             const SizedBox(height: 12),
 
-            // Form Nama
             TextField(
               decoration: InputDecoration(
                 labelText: "Nama",
@@ -44,10 +51,10 @@ class PengaturanProfilPage extends StatelessWidget {
                   borderSide: BorderSide.none,
                 ),
               ),
+              controller: TextEditingController(text: username),
             ),
             const SizedBox(height: 12),
 
-            // Form Nomor Telepon
             TextField(
               decoration: InputDecoration(
                 labelText: "Nomor Telepon",
@@ -58,10 +65,10 @@ class PengaturanProfilPage extends StatelessWidget {
                   borderSide: BorderSide.none,
                 ),
               ),
+              controller: TextEditingController(text: phone),
             ),
             const SizedBox(height: 12),
 
-            // Form Email
             TextField(
               decoration: InputDecoration(
                 labelText: "Email",
@@ -72,29 +79,10 @@ class PengaturanProfilPage extends StatelessWidget {
                   borderSide: BorderSide.none,
                 ),
               ),
-            ),
-            const SizedBox(height: 12),
-
-            // Form Tanggal Lahir
-            TextField(
-              readOnly: true,
-              decoration: InputDecoration(
-                labelText: "Tanggal Lahir",
-                filled: true,
-                fillColor: Colors.grey[200],
-                suffixIcon: const Icon(Icons.calendar_today),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(6),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-              onTap: () {
-                // bisa tambahin date picker nanti
-              },
+              controller: TextEditingController(text: email),
             ),
             const SizedBox(height: 20),
 
-            // Tombol Simpan
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF6A994E),
@@ -122,7 +110,8 @@ class PengaturanProfilPage extends StatelessWidget {
                 ),
               ),
               onPressed: () {
-                Navigator.pop(context);
+                // Langsung ke halaman login dan hapus semua halaman sebelumnya
+                Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
               },
               child: const Text("LOGOUT"),
             ),
