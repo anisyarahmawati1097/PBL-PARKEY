@@ -103,7 +103,7 @@ class PengaturanProfilPage extends StatelessWidget {
             // Tombol Logout
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
+                backgroundColor: Color.fromARGB(255, 255, 114, 114),
                 minimumSize: const Size(double.infinity, 48),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
