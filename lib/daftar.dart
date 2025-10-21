@@ -13,7 +13,7 @@ class _DaftarPageState extends State<DaftarPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _fullNameController = TextEditingController();
-  final _dobController = TextEditingController(); // Tanggal Lahir
+  final _dobController = TextEditingController(); 
   final _phoneController = TextEditingController();
 
   void _register() {

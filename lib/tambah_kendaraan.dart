@@ -132,14 +132,14 @@ class _TambahKendaraanPageState extends State<TambahKendaraanPage> {
             const SizedBox(height: 20),
 
             /// UPLOAD DOKUMEN
-            const Text("Unggah dokumen pendukung",
+            const Text("Unggah foto pendukung",
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             GestureDetector(
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                      content: Text("Upload STNK belum diimplementasi")),
+                      content: Text("Upload Foto Kendaraan belum diimplementasi")),
                 );
               },
               child: Container(
@@ -150,7 +150,7 @@ class _TambahKendaraanPageState extends State<TambahKendaraanPage> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Center(
-                  child: Text("STNK\nSentuh untuk unggah",
+                  child: Text("FOTO KENDARAAN\nSentuh untuk unggah",
                       textAlign: TextAlign.center),
                 ),
               ),
