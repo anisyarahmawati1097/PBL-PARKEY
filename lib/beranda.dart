@@ -4,7 +4,7 @@ import 'dompet.dart';
 import 'akun.dart';
 import 'lokasi.dart';
 import 'bc.dart';
-import 'itp.dart'; // halaman detail
+import 'itp.dart';
 
 class BerandaPage extends StatefulWidget {
   final String? username;
@@ -17,46 +17,6 @@ class BerandaPage extends StatefulWidget {
 }
 
 class _BerandaPageState extends State<BerandaPage> {
-  int _selectedIndex = 0;
-
-  void _onItemTapped(int index) {
-    switch (index) {
-      case 0:
-        setState(() => _selectedIndex = 0);
-        break;
-      case 1:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const AktivitasPage()),
-        );
-        break;
-      case 2:
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Fitur Bayar belum tersedia")),
-        );
-        break;
-      case 3:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const DompetPage()),
-        );
-        break;
-      case 4:
-        Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (_) => AkunPage(
-      username: widget.username ?? "User",
-      email: widget.email ?? "user@email.com",
-      phone: "081234567890", // default sementara
-    ),
-  ),
-);
-
-        break;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -67,8 +27,12 @@ class _BerandaPageState extends State<BerandaPage> {
         automaticallyImplyLeading: false,
         title: Row(
           children: [
-            Image.asset("assets/logo_parqrin.png", height: 32),
-            const SizedBox(width: 10),
+            Image.asset(
+              'assets/logo_parqrin.png',
+              height: 32,
+              width: 32,
+            ),
+            const SizedBox(width: 8),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -89,29 +53,10 @@ class _BerandaPageState extends State<BerandaPage> {
             ),
           ],
         ),
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.notifications, color: Colors.white),
-          ),
-        ],
       ),
+
+      // 🟩 Body aja, navbar bawah udah dihapus
       body: _buildBerandaContent(),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: const Color(0xFF386641),
-        selectedItemColor: const Color(0xFFE0FFC2),
-        unselectedItemColor: Colors.white,
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Beranda"),
-          BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: "Aktivitas"),
-          BottomNavigationBarItem(icon: Icon(Icons.qr_code_scanner), label: "Bayar"),
-          BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet), label: "Dompet"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Akun"),
-        ],
-      ),
     );
   }
 
@@ -119,31 +64,25 @@ class _BerandaPageState extends State<BerandaPage> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 14),
             decoration: BoxDecoration(
               color: const Color(0xFFE0FFC2),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Row(
-              children: const [
-                Icon(Icons.credit_card, color: Colors.black),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    "CARD",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-                Text("IDR -", style: TextStyle(fontWeight: FontWeight.bold)),
-                SizedBox(width: 6),
-                Icon(Icons.arrow_forward_ios, size: 14, color: Colors.black),
-              ],
+            child: const TextField(
+              decoration: InputDecoration(
+                icon: Icon(Icons.search, color: Colors.black54),
+                hintText: "Cari Tempat Parkir",
+                border: InputBorder.none,
+              ),
             ),
           ),
         ),
-        const SizedBox(height: 16),
+
+        const SizedBox(height: 12),
+
         Expanded(
           child: Container(
             width: double.infinity,
@@ -159,21 +98,6 @@ class _BerandaPageState extends State<BerandaPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE0FFC2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const TextField(
-                      decoration: InputDecoration(
-                        icon: Icon(Icons.search, color: Colors.black54),
-                        hintText: "Cari Tempat Parkir",
-                        border: InputBorder.none,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 18),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -186,9 +110,9 @@ class _BerandaPageState extends State<BerandaPage> {
                         },
                         child: Column(
                           children: const [
-                            Icon(Icons.location_on, size: 34),
+                            Icon(Icons.location_on, size: 40, color: Colors.black87),
                             SizedBox(height: 6),
-                            Text("Lokasi"),
+                            Text("Lokasi", style: TextStyle(fontWeight: FontWeight.w600)),
                           ],
                         ),
                       ),
@@ -201,25 +125,27 @@ class _BerandaPageState extends State<BerandaPage> {
                         },
                         child: Column(
                           children: const [
-                            Icon(Icons.qr_code, size: 34),
+                            Icon(Icons.qr_code, size: 40, color: Colors.black87),
                             SizedBox(height: 6),
-                            Text("QR"),
+                            Text("QR", style: TextStyle(fontWeight: FontWeight.w600)),
                           ],
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 18),
+
+                  const SizedBox(height: 20),
+
                   const Text(
-                    "Tempat Terakhir yang Anda Kunjungi",
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    "Tempat parkir yang tersedia",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                   const SizedBox(height: 10),
+
                   _buildParkirCard(
                     "Grand Batam Mall",
                     "Jl. Pembangunan, Batu Selicin, Kec. Lubuk Baja, Kota Batam",
                     "assets/gm.jpeg",
-                    "2.2 Km",
                     deskripsi:
                         "Operated by Centrepark. Lokasi strategis di pusat kota Batam.",
                     tarifMobil:
@@ -227,11 +153,11 @@ class _BerandaPageState extends State<BerandaPage> {
                     tarifMotor:
                         "2 Jam Pertama IDR 2000\nJam Berikutnya IDR 1000/Jam",
                   ),
+
                   _buildParkirCard(
                     "SNL Food Tanjung Uma",
-                    "Jodoh, kawasan baru priayang, Jl. Tj Uma, Kota Batam",
+                    "Jodoh, kawasan baru phrayangan, Jl. Tj Uma, Kota Batam",
                     "assets/snl.jpg",
-                    "3.2 Km",
                     deskripsi:
                         "Tempat parkir dekat pusat kuliner Tanjung Uma, ramai setiap malam.",
                     tarifMobil:
@@ -251,8 +177,7 @@ class _BerandaPageState extends State<BerandaPage> {
   Widget _buildParkirCard(
     String title,
     String subtitle,
-    String imagePath,
-    String distance, {
+    String imagePath, {
     required String deskripsi,
     required String tarifMobil,
     required String tarifMotor,
@@ -275,7 +200,6 @@ class _BerandaPageState extends State<BerandaPage> {
       },
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 8),
-        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
@@ -290,34 +214,37 @@ class _BerandaPageState extends State<BerandaPage> {
         child: Row(
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(12),
+                bottomLeft: Radius.circular(12),
+              ),
               child: Image.asset(
                 imagePath,
-                width: 86,
-                height: 64,
+                width: 100,
+                height: 75,
                 fit: BoxFit.cover,
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title,
-                      style: const TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 6),
-                  Text(
-                    subtitle,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 6),
-                  Text(distance,
-                      style: const TextStyle(color: Colors.blue)),
-                ],
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 14)),
+                    const SizedBox(height: 4),
+                    Text(subtitle,
+                        style:
+                            const TextStyle(fontSize: 12, color: Colors.black87),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis),
+                  ],
+                ),
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, size: 16),
           ],
         ),
       ),

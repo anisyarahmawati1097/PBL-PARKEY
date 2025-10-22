@@ -30,8 +30,10 @@ class _TambahKendaraanPageState extends State<TambahKendaraanPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             /// PILIH KENDARAAN
-            const Text("Pilih Kendaraan",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const Text(
+              "Pilih Kendaraan",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
             Wrap(
               spacing: 16,
@@ -108,38 +110,19 @@ class _TambahKendaraanPageState extends State<TambahKendaraanPage> {
             ),
             const SizedBox(height: 20),
 
-            /// INFORMASI STNK
-            const Text("Informasi STNK",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: nomorMesinController,
-                    decoration: _decor("Nomor Mesin"),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextField(
-                    controller: nomorRangkaController,
-                    decoration: _decor("Nomor Rangka"),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-
             /// UPLOAD DOKUMEN
-            const Text("Unggah foto pendukung",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const Text(
+              "Unggah foto pendukung",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
             GestureDetector(
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                      content: Text("Upload Foto Kendaraan belum diimplementasi")),
+                    content:
+                        Text("Upload foto kendaraan belum diimplementasi"),
+                  ),
                 );
               },
               child: Container(
@@ -150,8 +133,10 @@ class _TambahKendaraanPageState extends State<TambahKendaraanPage> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Center(
-                  child: Text("FOTO KENDARAAN\nSentuh untuk unggah",
-                      textAlign: TextAlign.center),
+                  child: Text(
+                    "FOTO KENDARAAN\nSentuh untuk unggah",
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ),
             ),
@@ -171,7 +156,8 @@ class _TambahKendaraanPageState extends State<TambahKendaraanPage> {
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                        content: Text("Kendaraan berhasil ditambahkan")),
+                      content: Text("Kendaraan berhasil ditambahkan"),
+                    ),
                   );
                   Navigator.pop(context);
                 },
@@ -187,9 +173,11 @@ class _TambahKendaraanPageState extends State<TambahKendaraanPage> {
   /// Widget pilihan jenis dengan icon
   Widget _buildJenis(String value, IconData icon) {
     return ChoiceChip(
-      avatar: Icon(icon,
-          size: 20,
-          color: jenisKendaraan == value ? Colors.white : Colors.black54),
+      avatar: Icon(
+        icon,
+        size: 20,
+        color: jenisKendaraan == value ? Colors.white : Colors.black54,
+      ),
       label: Text(value),
       selected: jenisKendaraan == value,
       onSelected: (selected) {
