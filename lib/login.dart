@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'daftar.dart';
-import 'beranda.dart'; // pake beranda yang lengkap
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -24,17 +23,14 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-    // setelah login sukses -> pindah ke BerandaPage
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => BerandaPage(username: username)),
-    );
+    // ✅ Setelah login sukses -> langsung pindah ke MainScreen (navbar utama)
+    Navigator.pushReplacementNamed(context, '/main');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF6A994E), // hijau background
+      backgroundColor: const Color(0xFF6A994E),
       body: Center(
         child: SingleChildScrollView(
           child: Column(
@@ -46,12 +42,12 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 20),
 
-              // Card Login
+              // 🟩 Card Login
               Container(
                 width: 350,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF386641), // hijau tua card
+                  color: const Color(0xFF386641),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -69,10 +65,8 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 20),
 
-                    const Text(
-                      "Email/Nama Pengguna",
-                      style: TextStyle(color: Colors.white),
-                    ),
+                    const Text("Email/Nama Pengguna",
+                        style: TextStyle(color: Colors.white)),
                     const SizedBox(height: 5),
                     TextField(
                       controller: _usernameController,
@@ -88,10 +82,8 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 15),
 
-                    const Text(
-                      "Password",
-                      style: TextStyle(color: Colors.white),
-                    ),
+                    const Text("Password",
+                        style: TextStyle(color: Colors.white)),
                     const SizedBox(height: 5),
                     TextField(
                       controller: _passwordController,
@@ -118,13 +110,12 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
 
-                    // Tombol Login
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: _login,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFC3E956), // tombol hijau muda
+                          backgroundColor: const Color(0xFFC3E956),
                           foregroundColor: Colors.black,
                           padding: const EdgeInsets.symmetric(vertical: 15),
                           shape: RoundedRectangleBorder(
@@ -140,13 +131,13 @@ class _LoginPageState extends State<LoginPage> {
 
                     const SizedBox(height: 15),
 
-                    // Link ke Daftar
                     Center(
                       child: GestureDetector(
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const DaftarPage()),
+                            MaterialPageRoute(
+                                builder: (_) => const DaftarPage()),
                           );
                         },
                         child: const Text(

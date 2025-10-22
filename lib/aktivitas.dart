@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
-import 'beranda.dart'; // pastikan path sesuai
 
-class AktivitasPage extends StatelessWidget {
+class AktivitasPage extends StatefulWidget {
   const AktivitasPage({super.key});
 
+  @override
+  State<AktivitasPage> createState() => _AktivitasPageState();
+}
+
+class _AktivitasPageState extends State<AktivitasPage> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -14,12 +18,7 @@ class AktivitasPage extends StatelessWidget {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const BerandaPage(), // username opsional
-                ),
-              );
+              Navigator.pop(context);
             },
           ),
           title: const Text(
@@ -36,6 +35,8 @@ class AktivitasPage extends StatelessWidget {
             ],
           ),
         ),
+
+        // 🟩 Body aja, tanpa navbar bawah
         body: const TabBarView(
           children: [
             _EmptyState(

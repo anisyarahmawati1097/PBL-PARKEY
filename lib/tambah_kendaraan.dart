@@ -108,29 +108,6 @@ class _TambahKendaraanPageState extends State<TambahKendaraanPage> {
             ),
             const SizedBox(height: 20),
 
-            /// INFORMASI STNK
-            const Text("Informasi STNK",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: nomorMesinController,
-                    decoration: _decor("Nomor Mesin"),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextField(
-                    controller: nomorRangkaController,
-                    decoration: _decor("Nomor Rangka"),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-
             /// UPLOAD DOKUMEN
             const Text("Unggah dokumen pendukung",
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
@@ -139,7 +116,7 @@ class _TambahKendaraanPageState extends State<TambahKendaraanPage> {
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                      content: Text("Upload STNK belum diimplementasi")),
+                      content: Text("Upload FOTO KENDARAAN belum diimplementasi")),
                 );
               },
               child: Container(
@@ -150,7 +127,7 @@ class _TambahKendaraanPageState extends State<TambahKendaraanPage> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Center(
-                  child: Text("STNK\nSentuh untuk unggah",
+                  child: Text("FOTO KENDARAAN \nSentuh untuk unggah",
                       textAlign: TextAlign.center),
                 ),
               ),
