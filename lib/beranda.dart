@@ -4,7 +4,6 @@ import 'dompet.dart';
 import 'akun.dart';
 import 'lokasi.dart';
 import 'bc.dart';
-import 'itp.dart';
 
 class BerandaPage extends StatefulWidget {
   final String? username;
@@ -137,7 +136,7 @@ class _BerandaPageState extends State<BerandaPage> {
                   const SizedBox(height: 20),
 
                   const Text(
-                    "Tempat parkir yang tersedia",
+                    "Tempat parkir terakhir dikunjungi",
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                   const SizedBox(height: 10),
@@ -146,24 +145,12 @@ class _BerandaPageState extends State<BerandaPage> {
                     "Grand Batam Mall",
                     "Jl. Pembangunan, Batu Selicin, Kec. Lubuk Baja, Kota Batam",
                     "assets/gm.jpeg",
-                    deskripsi:
-                        "Operated by Centrepark. Lokasi strategis di pusat kota Batam.",
-                    tarifMobil:
-                        "2 Jam Pertama IDR 5000\nJam Berikutnya IDR 2000/Jam",
-                    tarifMotor:
-                        "2 Jam Pertama IDR 2000\nJam Berikutnya IDR 1000/Jam",
                   ),
 
                   _buildParkirCard(
                     "SNL Food Tanjung Uma",
                     "Jodoh, kawasan baru phrayangan, Jl. Tj Uma, Kota Batam",
                     "assets/snl.jpg",
-                    deskripsi:
-                        "Tempat parkir dekat pusat kuliner Tanjung Uma, ramai setiap malam.",
-                    tarifMobil:
-                        "1 Jam Pertama IDR 4000\nJam Berikutnya IDR 2000/Jam",
-                    tarifMotor:
-                        "1 Jam Pertama IDR 1500\nJam Berikutnya IDR 1000/Jam",
                   ),
                 ],
               ),
@@ -177,76 +164,55 @@ class _BerandaPageState extends State<BerandaPage> {
   Widget _buildParkirCard(
     String title,
     String subtitle,
-    String imagePath, {
-    required String deskripsi,
-    required String tarifMobil,
-    required String tarifMotor,
-  }) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ItpPage(
-              nama: title,
-              alamat: subtitle,
-              gambar: imagePath,
-              deskripsi: deskripsi,
-              tarifMobil: tarifMobil,
-              tarifMotor: tarifMotor,
+    String imagePath,
+  ) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x12000000),
+            blurRadius: 6,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(12),
+              bottomLeft: Radius.circular(12),
+            ),
+            child: Image.asset(
+              imagePath,
+              width: 100,
+              height: 75,
+              fit: BoxFit.cover,
             ),
           ),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x12000000),
-              blurRadius: 6,
-              offset: Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(12),
-                bottomLeft: Radius.circular(12),
-              ),
-              child: Image.asset(
-                imagePath,
-                width: 100,
-                height: 75,
-                fit: BoxFit.cover,
+          const SizedBox(width: 12),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 14)),
+                  const SizedBox(height: 4),
+                  Text(subtitle,
+                      style: const TextStyle(fontSize: 12, color: Colors.black87),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis),
+                ],
               ),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 14)),
-                    const SizedBox(height: 4),
-                    Text(subtitle,
-                        style:
-                            const TextStyle(fontSize: 12, color: Colors.black87),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

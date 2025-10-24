@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'itp.dart';
 
 class LokasiPage extends StatelessWidget {
   @override
@@ -20,7 +21,6 @@ class LokasiPage extends StatelessWidget {
         ),
       ),
 
-      // 🔥 pakai ListView biar scroll & tidak overflow
       body: Padding(
         padding: const EdgeInsets.all(12.0),
         child: ListView(
@@ -37,20 +37,32 @@ class LokasiPage extends StatelessWidget {
 
             // --- Card Lokasi 1 ---
             lokasiCard(
+              context,
               "Grand Batam Mall",
               "Jl. Pembangunan, Batu Selicin, Kec. Lubuk Baja, Kota Batam",
-              "2.2 Km",
               "assets/gm.jpeg",
+              deskripsi:
+                  "Operated by Centrepark. Lokasi strategis di pusat kota Batam dengan akses mudah ke area perbelanjaan.",
+              tarifMobil:
+                  "2 Jam Pertama IDR 5000\nJam Berikutnya IDR 2000/Jam",
+              tarifMotor:
+                  "2 Jam Pertama IDR 2000\nJam Berikutnya IDR 1000/Jam",
             ),
 
             const SizedBox(height: 12),
 
             // --- Card Lokasi 2 ---
             lokasiCard(
+              context,
               "SNL Food Tanjung Uma",
               "Jodoh, kawasan baru, priyangan Jl. Tj Uma, Kota Batam",
-              "3.2 Km",
               "assets/snl.jpg",
+              deskripsi:
+                  "Tempat parkir dekat pusat kuliner Tanjung Uma, ramai setiap malam dan aman untuk motor maupun mobil.",
+              tarifMobil:
+                  "1 Jam Pertama IDR 4000\nJam Berikutnya IDR 2000/Jam",
+              tarifMotor:
+                  "1 Jam Pertama IDR 1500\nJam Berikutnya IDR 1000/Jam",
             ),
           ],
         ),
@@ -58,58 +70,77 @@ class LokasiPage extends StatelessWidget {
     );
   }
 
-  // Widget untuk card lokasi
-  Widget lokasiCard(String nama, String alamat, String jarak, String assetGambar) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 3,
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(12),
-              bottomLeft: Radius.circular(12),
-            ),
-            child: Image.asset(
-              assetGambar, // ✅ ambil dari assets
-              width: 100,
-              height: 80,
-              fit: BoxFit.cover,
+  // 🟢 Widget untuk card lokasi (tanpa jarak)
+  Widget lokasiCard(
+    BuildContext context,
+    String nama,
+    String alamat,
+    String assetGambar, {
+    required String deskripsi,
+    required String tarifMobil,
+    required String tarifMotor,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ItpPage(
+              nama: nama,
+              alamat: alamat,
+              gambar: assetGambar,
+              deskripsi: deskripsi,
+              tarifMobil: tarifMobil,
+              tarifMotor: tarifMotor,
             ),
           ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    nama,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    alamat,
-                    style: const TextStyle(fontSize: 12, color: Colors.black54),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    jarak,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue,
-                    ),
-                  ),
-                ],
+        );
+      },
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        elevation: 3,
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(12),
+                bottomLeft: Radius.circular(12),
+              ),
+              child: Image.asset(
+                assetGambar,
+                width: 100,
+                height: 80,
+                fit: BoxFit.cover,
               ),
             ),
-          )
-        ],
+            const SizedBox(width: 10),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      nama,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      alamat,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          ],
+        ),
       ),
     );
   }
