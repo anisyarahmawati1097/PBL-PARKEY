@@ -37,7 +37,7 @@ class _DaftarPageState extends State<DaftarPage> {
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Akun berhasil dibuat! Silakan login")),
+      const SnackBar(content: Text("Akun berhasil dibuat! Silakan Masuk")),
     );
     Navigator.pushReplacement(
       context,
@@ -137,7 +137,7 @@ class _DaftarPageState extends State<DaftarPage> {
                 TextField(
                   controller: _usernameController,
                   decoration: InputDecoration(
-                    hintText: "Masukkan username",
+                    hintText: "Masukkan nama pengguna",
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
@@ -167,13 +167,13 @@ class _DaftarPageState extends State<DaftarPage> {
                 const SizedBox(height: 15),
 
                 // Password
-                const Text("Password", style: TextStyle(color: Colors.white)),
+                const Text("Kata Sandi", style: TextStyle(color: Colors.white)),
                 const SizedBox(height: 5),
                 TextField(
                   controller: _passwordController,
                   obscureText: true,
                   decoration: InputDecoration(
-                    hintText: "Masukkan password",
+                    hintText: "Masukkan Kata Sandi",
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
