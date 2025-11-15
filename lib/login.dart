@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'daftar.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -9,22 +11,73 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  void _login() {
-    final username = _usernameController.text.trim();
+  // ================================
+  //           FUNGSI LOGIN
+  // ================================
+  Future<void> _login() async {
+    final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    if (username.isEmpty || password.isEmpty) {
+    if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Isi semua field terlebih dahulu")),
       );
       return;
     }
 
-    // ✅ Setelah login sukses -> langsung pindah ke MainScreen (navbar utama)
-    Navigator.pushReplacementNamed(context, '/main');
+    try {
+      final url = Uri.parse("http://192.168.184.131:8000/api/masuk");
+
+      final response = await http.post(
+        url,
+        headers: {"Accept": "application/json"},
+        body: {
+          "email": email, // jika backend bisa login pakai username, ganti menjadi "login": email
+          "password": password,
+        },
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        final token = data["token"];
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(data["message"] ?? "Login berhasil")),
+        );
+
+        // TODO: simpan token di SharedPreferences bila perlu
+
+        // pindah ke halaman utama
+        Navigator.pushReplacementNamed(context, '/main');
+      } else {
+        String msg = data["message"] ?? '';
+
+        if (msg.isEmpty && data is Map && data.containsKey('errors')) {
+          final errors = data['errors'] as Map;
+          final firstField = errors.keys.first;
+          msg = (errors[firstField] as List).first.toString();
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(msg.isNotEmpty ? msg : "Login gagal")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -42,7 +95,6 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 20),
 
-              // 🟩 Card Login
               Container(
                 width: 350,
                 padding: const EdgeInsets.all(20),
@@ -65,19 +117,15 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 20),
 
-                    const Text("Email/Nama Pengguna",
+                    const Text("Email / Username",
                         style: TextStyle(color: Colors.white)),
                     const SizedBox(height: 5),
                     TextField(
-                      controller: _usernameController,
-                      decoration: InputDecoration(
-                        hintText: "Username",
+                      controller: _emailController,
+                      decoration: const InputDecoration(
+                        hintText: "Masukkan email atau username",
                         filled: true,
                         fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
-                        ),
                       ),
                     ),
                     const SizedBox(height: 15),
@@ -88,14 +136,10 @@ class _LoginPageState extends State<LoginPage> {
                     TextField(
                       controller: _passwordController,
                       obscureText: true,
-                      decoration: InputDecoration(
-                        hintText: "Password",
+                      decoration: const InputDecoration(
+                        hintText: "Masukkan password",
                         filled: true,
                         fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
-                        ),
                       ),
                     ),
 
@@ -118,9 +162,6 @@ class _LoginPageState extends State<LoginPage> {
                           backgroundColor: const Color(0xFFC3E956),
                           foregroundColor: Colors.black,
                           padding: const EdgeInsets.symmetric(vertical: 15),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
                         ),
                         child: const Text(
                           "LOGIN",
@@ -128,7 +169,6 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 15),
 
                     Center(
@@ -137,7 +177,8 @@ class _LoginPageState extends State<LoginPage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (_) => const DaftarPage()),
+                              builder: (_) => const DaftarPage(),
+                            ),
                           );
                         },
                         child: const Text(

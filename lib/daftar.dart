@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'login.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class DaftarPage extends StatefulWidget {
   const DaftarPage({super.key});
@@ -13,10 +15,13 @@ class _DaftarPageState extends State<DaftarPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _fullNameController = TextEditingController();
-  final _dobController = TextEditingController(); 
+  final _dobController = TextEditingController();
   final _phoneController = TextEditingController();
 
-  void _register() {
+  // ================================
+  //  FUNGSI REGISTER KE BACKEND
+  // ================================
+  Future<void> _register() async {
     final username = _usernameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
@@ -24,25 +29,68 @@ class _DaftarPageState extends State<DaftarPage> {
     final dob = _dobController.text.trim();
     final phone = _phoneController.text.trim();
 
-    if (username.isEmpty ||
-        email.isEmpty ||
-        password.isEmpty ||
-        fullName.isEmpty ||
-        dob.isEmpty ||
-        phone.isEmpty) {
+    if (username.isEmpty || email.isEmpty || password.isEmpty || fullName.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Isi semua field terlebih dahulu")),
+        const SnackBar(content: Text("Isi semua field wajib terlebih dahulu")),
       );
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Akun berhasil dibuat! Silakan Masuk")),
-    );
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginPage()),
-    );
+    try {
+      final url = Uri.parse("http://192.168.184.131:8000/api/daftar");
+
+      final response = await http.post(
+        url,
+        headers: {"Accept": "application/json"},
+        body: {
+          "name": fullName,
+          "full_name": fullName,
+          "email": email,
+          "username": username,
+          "tanggal_lahir": dob,
+          "phone": phone,
+          "password": password,
+        },
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(data["message"] ?? "Registrasi berhasil")),
+        );
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginPage()),
+        );
+      } else {
+        String msg = data["message"] ?? '';
+        if (msg.isEmpty && data is Map && data.containsKey('errors')) {
+          final errors = data['errors'] as Map;
+          final firstField = errors.keys.first;
+          msg = (errors[firstField] as List).first.toString();
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(msg.isNotEmpty ? msg : "Registrasi gagal")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _fullNameController.dispose();
+    _dobController.dispose();
+    _phoneController.dispose();
+    super.dispose();
   }
 
   @override
@@ -78,113 +126,82 @@ class _DaftarPageState extends State<DaftarPage> {
                 ),
                 const SizedBox(height: 20),
 
-                // Nama Lengkap
                 const Text("Nama Lengkap", style: TextStyle(color: Colors.white)),
                 const SizedBox(height: 5),
                 TextField(
                   controller: _fullNameController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: "Masukkan nama lengkap",
                     filled: true,
                     fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
                   ),
                 ),
                 const SizedBox(height: 15),
 
-                // Tanggal Lahir
-                const Text("Tanggal Lahir", style: TextStyle(color: Colors.white)),
+                const Text("Tanggal Lahir (YYYY-MM-DD)", style: TextStyle(color: Colors.white)),
                 const SizedBox(height: 5),
                 TextField(
                   controller: _dobController,
-                  decoration: InputDecoration(
-                    hintText: "DD/MM/YYYY",
+                  decoration: const InputDecoration(
+                    hintText: "YYYY-MM-DD",
                     filled: true,
                     fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
                   ),
                   keyboardType: TextInputType.datetime,
                 ),
                 const SizedBox(height: 15),
 
-                // Nomor HP
-                const Text("No. Handphone", style: TextStyle(color: Colors.white)),
+                const Text("Nomor HP", style: TextStyle(color: Colors.white)),
                 const SizedBox(height: 5),
                 TextField(
                   controller: _phoneController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: "Masukkan nomor HP",
                     filled: true,
                     fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
                   ),
                   keyboardType: TextInputType.phone,
                 ),
                 const SizedBox(height: 15),
 
-                // Username
-                const Text("Nama Pengguna", style: TextStyle(color: Colors.white)),
+                const Text("Username", style: TextStyle(color: Colors.white)),
                 const SizedBox(height: 5),
                 TextField(
                   controller: _usernameController,
-                  decoration: InputDecoration(
-                    hintText: "Masukkan nama pengguna",
+                  decoration: const InputDecoration(
+                    hintText: "Masukkan username",
                     filled: true,
                     fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
                   ),
                 ),
                 const SizedBox(height: 15),
 
-                // Email
                 const Text("Email", style: TextStyle(color: Colors.white)),
                 const SizedBox(height: 5),
                 TextField(
                   controller: _emailController,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: "Masukkan email",
                     filled: true,
                     fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
                   ),
                   keyboardType: TextInputType.emailAddress,
                 ),
                 const SizedBox(height: 15),
 
-                // Password
-                const Text("Kata Sandi", style: TextStyle(color: Colors.white)),
+                const Text("Password", style: TextStyle(color: Colors.white)),
                 const SizedBox(height: 5),
                 TextField(
                   controller: _passwordController,
                   obscureText: true,
-                  decoration: InputDecoration(
-                    hintText: "Masukkan Kata Sandi",
+                  decoration: const InputDecoration(
+                    hintText: "Masukkan password",
                     filled: true,
                     fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
                   ),
                 ),
                 const SizedBox(height: 20),
 
-                // Tombol Daftar
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -193,9 +210,6 @@ class _DaftarPageState extends State<DaftarPage> {
                       backgroundColor: const Color(0xFFC3E956),
                       foregroundColor: Colors.black,
                       padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
                     ),
                     child: const Text(
                       "DAFTAR",
@@ -205,7 +219,6 @@ class _DaftarPageState extends State<DaftarPage> {
                 ),
                 const SizedBox(height: 15),
 
-                // Link ke Login
                 Center(
                   child: GestureDetector(
                     onTap: () {
