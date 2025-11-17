@@ -57,7 +57,7 @@ class _DaftarPageState extends State<DaftarPage> {
 
       if (response.statusCode == 201) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(data["message"] ?? "Registrasi berhasil")),
+          SnackBar(content: Text(data["message"] ?? "Berhasil daftar")),
         );
 
         Navigator.pushReplacement(
@@ -72,7 +72,7 @@ class _DaftarPageState extends State<DaftarPage> {
           msg = (errors[firstField] as List).first.toString();
         }
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(msg.isNotEmpty ? msg : "Registrasi gagal")),
+          SnackBar(content: Text(msg.isNotEmpty ? msg : "Gagal daftar")),
         );
       }
     } catch (e) {
@@ -169,7 +169,7 @@ class _DaftarPageState extends State<DaftarPage> {
                 TextField(
                   controller: _usernameController,
                   decoration: const InputDecoration(
-                    hintText: "Masukkan username",
+                    hintText: "Masukkan nama pengguna",
                     filled: true,
                     fillColor: Colors.white,
                   ),
@@ -189,13 +189,13 @@ class _DaftarPageState extends State<DaftarPage> {
                 ),
                 const SizedBox(height: 15),
 
-                const Text("Password", style: TextStyle(color: Colors.white)),
+                const Text("Kata sandi", style: TextStyle(color: Colors.white)),
                 const SizedBox(height: 5),
                 TextField(
                   controller: _passwordController,
                   obscureText: true,
                   decoration: const InputDecoration(
-                    hintText: "Masukkan password",
+                    hintText: "Masukkan kata sandi",
                     filled: true,
                     fillColor: Colors.white,
                   ),
@@ -228,7 +228,7 @@ class _DaftarPageState extends State<DaftarPage> {
                       );
                     },
                     child: const Text(
-                      "Sudah punya akun? Login",
+                      "Sudah punya akun? Masuk",
                       style: TextStyle(
                         color: Colors.white,
                         decoration: TextDecoration.underline,
