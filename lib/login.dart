@@ -46,7 +46,7 @@ class _LoginPageState extends State<LoginPage> {
         final token = data["token"];
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(data["message"] ?? "Login berhasil")),
+          SnackBar(content: Text(data["message"] ?? "Berhasil masuk!")),
         );
 
         // TODO: simpan token di SharedPreferences bila perlu
@@ -63,7 +63,7 @@ class _LoginPageState extends State<LoginPage> {
         }
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(msg.isNotEmpty ? msg : "Login gagal")),
+          SnackBar(content: Text(msg.isNotEmpty ? msg : "Gagal masuk!")),
         );
       }
     } catch (e) {
@@ -117,27 +117,27 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 20),
 
-                    const Text("Email / Username",
+                    const Text("Email",
                         style: TextStyle(color: Colors.white)),
                     const SizedBox(height: 5),
                     TextField(
                       controller: _emailController,
                       decoration: const InputDecoration(
-                        hintText: "Masukkan email atau username",
+                        hintText: "Masukkan email",
                         filled: true,
                         fillColor: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 15),
 
-                    const Text("Password",
+                    const Text("Kata sandi",
                         style: TextStyle(color: Colors.white)),
                     const SizedBox(height: 5),
                     TextField(
                       controller: _passwordController,
                       obscureText: true,
                       decoration: const InputDecoration(
-                        hintText: "Masukkan password",
+                        hintText: "Masukkan kata sandi",
                         filled: true,
                         fillColor: Colors.white,
                       ),
@@ -148,7 +148,7 @@ class _LoginPageState extends State<LoginPage> {
                       child: TextButton(
                         onPressed: () {},
                         child: const Text(
-                          "Lupa Password",
+                          "Lupa kata sandi",
                           style: TextStyle(color: Colors.white),
                         ),
                       ),
@@ -164,7 +164,7 @@ class _LoginPageState extends State<LoginPage> {
                           padding: const EdgeInsets.symmetric(vertical: 15),
                         ),
                         child: const Text(
-                          "LOGIN",
+                          "MASUK",
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
