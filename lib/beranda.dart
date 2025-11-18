@@ -5,18 +5,22 @@ import 'akun.dart';
 import 'lokasi.dart';
 import 'bc.dart';
 
+
 class BerandaPage extends StatefulWidget {
   final String? username;
   final String? email;
 
   const BerandaPage({super.key, this.username, this.email});
+  // const BerandaPage({super.key});
 
   @override
   State<BerandaPage> createState() => _BerandaPageState();
 }
 
 class _BerandaPageState extends State<BerandaPage> {
-  @override
+
+
+ @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF6A994E),
