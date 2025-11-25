@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'tambah_kendaraan.dart';
 import 'pengaturan_profil.dart';
 
-class AkunPage extends StatelessWidget {
+class AkunPage extends StatefulWidget {
   final String username;
   final String email;
   final String phone;
@@ -13,6 +13,23 @@ class AkunPage extends StatelessWidget {
     required this.email,
     required this.phone,
   });
+
+  @override
+  State<AkunPage> createState() => _AkunPageState();
+}
+
+class _AkunPageState extends State<AkunPage> {
+  late String username;
+  late String email;
+  late String phone;
+
+  @override
+  void initState() {
+    super.initState();
+    username = widget.username;
+    email = widget.email;
+    phone = widget.phone;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +46,13 @@ class AkunPage extends StatelessWidget {
               child: Icon(Icons.person, color: Colors.white),
             ),
             title: Text(username),
-            subtitle: Text(email),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(email),
+                Text(phone),
+              ],
+            ),
           ),
           const Divider(),
           ListTile(
@@ -47,8 +70,8 @@ class AkunPage extends StatelessWidget {
             leading: const Icon(Icons.settings, color: Colors.green),
             title: const Text("Pengaturan Profil"),
             trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () {
-              Navigator.push(
+            onTap: () async {
+              final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (_) => PengaturanProfilPage(
@@ -58,6 +81,15 @@ class AkunPage extends StatelessWidget {
                   ),
                 ),
               );
+
+              // Jika result tidak null, update data akun
+              if (result != null && result is Map<String, String>) {
+                setState(() {
+                  username = result['username'] ?? username;
+                  email = result['email'] ?? email;
+                  phone = result['phone'] ?? phone;
+                });
+              }
             },
           ),
         ],

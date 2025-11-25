@@ -37,17 +37,16 @@ class _DaftarPageState extends State<DaftarPage> {
     }
 
     try {
-      final url = Uri.parse("http://192.168.51.134:8000/api/daftar");
+      final url = Uri.parse("http://192.168.115.134:8000/api/daftar");
 
       final response = await http.post(
         url,
         headers: {"Accept": "application/json"},
         body: {
-          "name": fullName,
-          "full_name": fullName,
+          "fullname": fullName,        // Nama lengkap
+          "name": username,            // Username → kolom "name"
           "email": email,
-          "username": username,
-          "tanggal_lahir": dob,
+          "tanggal_lahir": dob,        // Format: YYYY-MM-DD
           "phone": phone,
           "password": password,
         },
@@ -55,7 +54,7 @@ class _DaftarPageState extends State<DaftarPage> {
 
       final data = jsonDecode(response.body);
 
-      if (response.statusCode == 201) {
+      if (response.statusCode == 201 || response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(data["message"] ?? "Berhasil daftar")),
         );
@@ -66,11 +65,13 @@ class _DaftarPageState extends State<DaftarPage> {
         );
       } else {
         String msg = data["message"] ?? '';
+
         if (msg.isEmpty && data is Map && data.containsKey('errors')) {
           final errors = data['errors'] as Map;
           final firstField = errors.keys.first;
           msg = (errors[firstField] as List).first.toString();
         }
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(msg.isNotEmpty ? msg : "Gagal daftar")),
         );

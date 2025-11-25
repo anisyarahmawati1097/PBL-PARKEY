@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
-import 'daftar.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'daftar.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -15,68 +16,88 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  // ================================
-  //           FUNGSI LOGIN
-  // ================================
+  // =============================================
+  //                LOGIN FUNCTION
+  // =============================================
   Future<void> _login() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Isi semua field terlebih dahulu")),
-      );
+      _showMessage("Semua field harus diisi.");
       return;
     }
 
     try {
-      final url = Uri.parse("http://192.168.51.134:8000/api/masuk");// pakai IP laptop
+      final url = Uri.parse("http://192.168.115.134:8000/api/masuk");
 
       final response = await http.post(
         url,
-        headers: {"Accept": "application/json"},
-        body: {"email": email, "password": password},
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode({
+          "email": email,
+          "password": password,
+        }),
       );
 
-      final data = jsonDecode(response.body);
-
-      if (response.statusCode == 200) {
-        // Login berhasil
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(data["message"] ?? "Berhasil masuk!")),
-        );
-
-        String token = data['token'];
-        var user = data['user'];
-
-         // Simpan token & user ke local storage
-        final prefs = await SharedPreferences.getInstance();
-   
-        await prefs.setString('token', token);
-        await prefs.setString('user', jsonEncode(user));
-        // TODO: simpan token jika perlu (SharedPreferences)
-
-        // Pindah ke halaman utama
-        Navigator.pushReplacementNamed(context, '/main');
-      } else {
-        // Ambil pesan error dari backend
-        String msg = data["message"] ?? '';
-        if (msg.isEmpty && data is Map && data.containsKey('errors')) {
-          final errors = data['errors'] as Map;
-          final firstField = errors.keys.first;
-          msg = (errors[firstField] as List).first.toString();
-        }
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(msg.isNotEmpty ? msg : "Gagal masuk!")),
-        );
+      // --- Pastikan response adalah JSON ---
+      dynamic data;
+      try {
+        data = jsonDecode(response.body);
+      } catch (_) {
+        _showMessage("Server tidak mengembalikan data yang valid.");
+        return;
       }
+
+      // --- Status 200 → Login Berhasil ---
+      if (response.statusCode == 200) {
+        _showMessage("Login berhasil!");
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString("token", data["token"]);
+        await prefs.setString("user", jsonEncode(data["user"]));
+
+        if (!mounted) return;
+        Navigator.pushReplacementNamed(context, '/main');
+        return;
+      }
+
+      // --- Jika gagal → kirim pesan error dari Laravel ---
+      _handleError(data);
     } catch (e) {
-      // Jika tidak bisa connect ke server
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Error koneksi: $e")));
+      _showMessage("Tidak dapat terhubung ke server.");
     }
+  }
+
+  // =============================================
+  //              HANDLE ERROR LARAVEL
+  // =============================================
+  void _handleError(dynamic data) {
+    String message = "";
+
+    // error dari Validator Laravel
+    if (data is Map && data.containsKey("errors")) {
+      final errors = data["errors"] as Map;
+      message = (errors.values.first as List).first.toString();
+    }
+
+    // error manual { message : "...." }
+    if (message.isEmpty && data is Map && data.containsKey("message")) {
+      message = data["message"];
+    }
+
+    _showMessage(message.isNotEmpty ? message : "Gagal masuk.");
+  }
+
+  // =============================================
+  //                     ALERT
+  // =============================================
+  void _showMessage(String msg) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(msg)));
   }
 
   @override
@@ -86,6 +107,9 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
+  // =============================================
+  //                        UI
+  // =============================================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -112,9 +136,9 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
 
-                // Field Email
+                const SizedBox(height: 25),
+
                 const Text("Email", style: TextStyle(color: Colors.white)),
                 const SizedBox(height: 5),
                 TextField(
@@ -125,9 +149,9 @@ class _LoginPageState extends State<LoginPage> {
                     fillColor: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 15),
 
-                // Field Password
+                const SizedBox(height: 20),
+
                 const Text("Kata sandi", style: TextStyle(color: Colors.white)),
                 const SizedBox(height: 5),
                 TextField(
@@ -139,6 +163,7 @@ class _LoginPageState extends State<LoginPage> {
                     fillColor: Colors.white,
                   ),
                 ),
+
                 const SizedBox(height: 10),
 
                 Align(
@@ -146,13 +171,14 @@ class _LoginPageState extends State<LoginPage> {
                   child: TextButton(
                     onPressed: () {},
                     child: const Text(
-                      "Lupa kata sandi",
+                      "Lupa kata sandi?",
                       style: TextStyle(color: Colors.white),
                     ),
                   ),
                 ),
 
-                // Tombol Login
+                const SizedBox(height: 10),
+
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -168,13 +194,13 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 15),
 
-                // Navigasi ke halaman Daftar
+                const SizedBox(height: 20),
+
                 Center(
                   child: GestureDetector(
                     onTap: () {
-                      Navigator.pushReplacement(
+                      Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const DaftarPage()),
                       );
@@ -187,7 +213,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                   ),
-                ),
+                )
               ],
             ),
           ),
