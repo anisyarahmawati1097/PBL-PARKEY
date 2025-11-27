@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'bc.dart';
 
 class TambahKendaraanPage extends StatefulWidget {
   const TambahKendaraanPage({super.key});
@@ -13,9 +18,58 @@ class _TambahKendaraanPageState extends State<TambahKendaraanPage> {
   String? model;
   String? warna;
   String? tahun;
+
   final nomorPlatController = TextEditingController();
-  final nomorMesinController = TextEditingController();
-  final nomorRangkaController = TextEditingController();
+  File? foto;
+
+  /// Pick image
+  Future<void> pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? picked = await picker.pickImage(source: ImageSource.gallery);
+
+    if (picked != null) {
+      setState(() {
+        foto = File(picked.path);
+      });
+    }
+  }
+
+  /// Simpan kendaraan ke backend
+  Future<void> simpanKendaraan() async {
+    var url = Uri.parse("http://192.168.115.131:8000/api/kendaraan/store");
+
+    var request = http.MultipartRequest("POST", url);
+    request.fields["plat_nomor"] = nomorPlatController.text;
+    request.fields["jenis"] = jenisKendaraan ?? "";
+    request.fields["merk"] = merk ?? "";
+    request.fields["model"] = model ?? "";
+    request.fields["warna"] = warna ?? "";
+    request.fields["tahun"] = tahun ?? "";
+    request.fields["pemilik"] = "User A";
+
+    if (foto != null) {
+      request.files.add(await http.MultipartFile.fromPath("foto", foto!.path));
+    }
+
+    var response = await request.send();
+
+    if (response.statusCode == 201) {
+      var resBody = await response.stream.bytesToString();
+      var jsonData = json.decode(resBody);
+      var kendaraanBaru = jsonData["data"];
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => QRCodePage(kendaraan: kendaraanBaru),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Gagal menambah kendaraan (${response.statusCode})")),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +83,6 @@ class _TambahKendaraanPageState extends State<TambahKendaraanPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// PILIH KENDARAAN
             const Text(
               "Pilih Kendaraan",
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -45,25 +98,18 @@ class _TambahKendaraanPageState extends State<TambahKendaraanPage> {
               ],
             ),
             const SizedBox(height: 20),
-
-            /// INPUTAN DATA KENDARAAN
-            DropdownButtonFormField<String>(
-              decoration: _decor("Plat No. Kendaraan"),
-              items: ["B 1234 CD", "D 4567 EF", "L 7890 GH"]
-                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                  .toList(),
-              onChanged: (val) {},
+            TextFormField(
+              controller: nomorPlatController,
+              decoration: _decor("Plat Nomor Kendaraan"),
             ),
             const SizedBox(height: 12),
-
             Row(
               children: [
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     decoration: _decor("Merk"),
                     items: ["Toyota", "Honda", "Mitsubishi"]
-                        .map((e) =>
-                            DropdownMenuItem(value: e, child: Text(e)))
+                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                         .toList(),
                     onChanged: (val) => setState(() => merk = val),
                   ),
@@ -73,8 +119,7 @@ class _TambahKendaraanPageState extends State<TambahKendaraanPage> {
                   child: DropdownButtonFormField<String>(
                     decoration: _decor("Model"),
                     items: ["Avanza", "Jazz", "Xpander"]
-                        .map((e) =>
-                            DropdownMenuItem(value: e, child: Text(e)))
+                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                         .toList(),
                     onChanged: (val) => setState(() => model = val),
                   ),
@@ -82,15 +127,13 @@ class _TambahKendaraanPageState extends State<TambahKendaraanPage> {
               ],
             ),
             const SizedBox(height: 12),
-
             Row(
               children: [
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     decoration: _decor("Tahun Pembuatan"),
                     items: ["2018", "2019", "2020", "2021", "2022"]
-                        .map((e) =>
-                            DropdownMenuItem(value: e, child: Text(e)))
+                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                         .toList(),
                     onChanged: (val) => setState(() => tahun = val),
                   ),
@@ -100,8 +143,7 @@ class _TambahKendaraanPageState extends State<TambahKendaraanPage> {
                   child: DropdownButtonFormField<String>(
                     decoration: _decor("Warna"),
                     items: ["Hitam", "Putih", "Merah", "Biru"]
-                        .map((e) =>
-                            DropdownMenuItem(value: e, child: Text(e)))
+                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                         .toList(),
                     onChanged: (val) => setState(() => warna = val),
                   ),
@@ -109,22 +151,13 @@ class _TambahKendaraanPageState extends State<TambahKendaraanPage> {
               ],
             ),
             const SizedBox(height: 20),
-
-            /// UPLOAD DOKUMEN
             const Text(
               "Unggah foto pendukung",
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             GestureDetector(
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content:
-                        Text("Upload foto kendaraan belum diimplementasi"),
-                  ),
-                );
-              },
+              onTap: () => pickImage(),
               child: Container(
                 height: 120,
                 width: double.infinity,
@@ -132,17 +165,17 @@ class _TambahKendaraanPageState extends State<TambahKendaraanPage> {
                   color: Colors.grey.shade300,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Center(
-                  child: Text(
-                    "FOTO KENDARAAN\nSentuh untuk unggah",
-                    textAlign: TextAlign.center,
-                  ),
+                child: Center(
+                  child: foto == null
+                      ? const Text(
+                          "FOTO KENDARAAN\nSentuh untuk unggah",
+                          textAlign: TextAlign.center,
+                        )
+                      : Image.file(foto!, fit: BoxFit.cover),
                 ),
               ),
             ),
             const SizedBox(height: 20),
-
-            /// SIMPAN
             Center(
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
@@ -150,27 +183,20 @@ class _TambahKendaraanPageState extends State<TambahKendaraanPage> {
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8)),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                 ),
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Kendaraan berhasil ditambahkan"),
-                    ),
-                  );
-                  Navigator.pop(context);
+                  simpanKendaraan();
                 },
                 child: const Text("Simpan Kendaraan"),
               ),
-            )
+            ),
           ],
         ),
       ),
     );
   }
 
-  /// Widget pilihan jenis dengan icon
   Widget _buildJenis(String value, IconData icon) {
     return ChoiceChip(
       avatar: Icon(
@@ -180,11 +206,7 @@ class _TambahKendaraanPageState extends State<TambahKendaraanPage> {
       ),
       label: Text(value),
       selected: jenisKendaraan == value,
-      onSelected: (selected) {
-        setState(() {
-          jenisKendaraan = value;
-        });
-      },
+      onSelected: (selected) => setState(() => jenisKendaraan = value),
       selectedColor: const Color(0xFF6A994E),
       labelStyle: TextStyle(
         color: jenisKendaraan == value ? Colors.white : Colors.black,
@@ -192,7 +214,6 @@ class _TambahKendaraanPageState extends State<TambahKendaraanPage> {
     );
   }
 
-  /// Dekorasi field biar seragam
   InputDecoration _decor(String label) {
     return InputDecoration(
       labelText: label,

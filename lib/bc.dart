@@ -1,10 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 class QRCodePage extends StatelessWidget {
-  const QRCodePage({super.key});
-
+  final Map<String, dynamic> kendaraan;
+  const QRCodePage({super.key, required this.kendaraan});
+  
   @override
   Widget build(BuildContext context) {
+
+    // Ambil data dengan aman
+    final String kendaraanId = kendaraan["id"]?.toString() ?? "0";
+    final String nomorKendaraan = kendaraan["plat_nomor"]?.toString() ?? "Tidak ada";
+
+    // Data QR
+    String qrData = "$kendaraanId|$nomorKendaraan";
+
     return Scaffold(
       backgroundColor: const Color(0xFF6A994E),
       appBar: AppBar(
@@ -26,8 +36,8 @@ class QRCodePage extends StatelessWidget {
               "QR Code ini digunakan pada saat masuk \n"
               "dan keluar dari pusat perbelanjaan.\n"
               "Silahkan Scan QR Code ini",
-              textAlign: TextAlign.left, // sejajar kiri
-              style: TextStyle(color: Colors.white, fontSize: 18), // font diperbesar
+              style: TextStyle(color: Colors.white, fontSize: 18),
+              textAlign: TextAlign.left,
             ),
           ),
           Expanded(
@@ -44,21 +54,19 @@ class QRCodePage extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // langsung QR code tanpa Container
-                    Image.asset(
-                      "assets/bc.png",
-                      width: 400,   // lebih besar
-                      height: 400,  // lebih besar
-                      fit: BoxFit.contain,
+                    QrImageView(
+                      data: qrData, // data unik QR
+                      version: QrVersions.auto,
+                      size: 300,
                     ),
-                    const SizedBox(height: 18),
-                    const Text(
-                      "BP 1234 JH",
-                      style: TextStyle(
+                    const SizedBox(height: 20),
+                    Text(
+                      nomorKendaraan,
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 20, // teks diperbesar
+                        fontSize: 20,
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),

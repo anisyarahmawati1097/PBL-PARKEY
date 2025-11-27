@@ -4,6 +4,8 @@ import 'dompet.dart';
 import 'akun.dart';
 import 'lokasi.dart';
 import 'bc.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 
 class BerandaPage extends StatefulWidget {
@@ -11,16 +13,35 @@ class BerandaPage extends StatefulWidget {
   final String? email;
 
   const BerandaPage({super.key, this.username, this.email});
-  // const BerandaPage({super.key});
 
   @override
   State<BerandaPage> createState() => _BerandaPageState();
 }
 
 class _BerandaPageState extends State<BerandaPage> {
+  Map<String, dynamic>? kendaraanTerbaru;
 
+  @override
+  void initState() {
+    super.initState();
+    fetchKendaraanTerbaru(); // panggil saat halaman dibuka
+  }
 
- @override
+  // Fungsi fetchKendaraanTerbaru taruh di sini
+  Future<void> fetchKendaraanTerbaru() async {
+    final response = await http.get(Uri.parse("http://192.168.115.131:8000/api/kendaraan/store"));
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body)['data'];
+      if (data.isNotEmpty) {
+        setState(() {
+          kendaraanTerbaru = data.last; // ambil kendaraan terakhir
+        });
+      }
+    } else {
+      print("Gagal mengambil data kendaraan: ${response.statusCode}");
+    }
+  }
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF6A994E),
@@ -50,15 +71,16 @@ class _BerandaPageState extends State<BerandaPage> {
                 const SizedBox(height: 4),
                 const Text(
                   "Mau kemana hari ini?",
-                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 12,
+                  ),
                 ),
               ],
             ),
           ],
         ),
       ),
-
-      // 🟩 Body aja, navbar bawah udah dihapus
       body: _buildBerandaContent(),
     );
   }
@@ -108,32 +130,48 @@ class _BerandaPageState extends State<BerandaPage> {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => LokasiPage()),
+                            MaterialPageRoute(
+                              builder: (_) => LokasiPage(),
+                            ),
                           );
                         },
                         child: Column(
                           children: const [
                             Icon(Icons.location_on, size: 40, color: Colors.black87),
                             SizedBox(height: 6),
-                            Text("Lokasi", style: TextStyle(fontWeight: FontWeight.w600)),
+                            Text(
+                              "Lokasi",
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                            ),
                           ],
                         ),
                       ),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const QRCodePage()),
-                          );
-                        },
-                        child: Column(
-                          children: const [
-                            Icon(Icons.qr_code, size: 40, color: Colors.black87),
-                            SizedBox(height: 6),
-                            Text("QR", style: TextStyle(fontWeight: FontWeight.w600)),
-                          ],
-                        ),
-                      ),
+                     GestureDetector(
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => QRCodePage(
+          kendaraan: kendaraanTerbaru ?? {
+            "id": 0,
+            "plat_nomor": "Tidak ada",
+          },
+        ),
+      ),
+    );
+  },
+  child: Column(
+    children: const [
+      Icon(Icons.qr_code, size: 40, color: Colors.black87),
+      SizedBox(height: 6),
+      Text(
+        "QR",
+        style: TextStyle(fontWeight: FontWeight.w600),
+      ),
+    ],
+  ),
+),
+
                     ],
                   ),
 
@@ -141,8 +179,12 @@ class _BerandaPageState extends State<BerandaPage> {
 
                   const Text(
                     "Tempat parkir terakhir dikunjungi",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
                   ),
+
                   const SizedBox(height: 10),
 
                   _buildParkirCard(
@@ -204,14 +246,22 @@ class _BerandaPageState extends State<BerandaPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 14)),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
                   const SizedBox(height: 4),
-                  Text(subtitle,
-                      style: const TextStyle(fontSize: 12, color: Colors.black87),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.black87),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ],
               ),
             ),

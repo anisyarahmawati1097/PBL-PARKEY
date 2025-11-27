@@ -24,7 +24,7 @@ class _LupaPasswordPageState extends State<LupaPasswordPage> {
     }
 
     try {
-      final url = Uri.parse("http://192.168.115.134:8000/api/lupa-password");
+      final url = Uri.parse("http://192.168.115.131:8000/api/lupa-password");
 
       final response = await http.post(
         url,

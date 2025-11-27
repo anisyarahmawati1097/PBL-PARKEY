@@ -11,6 +11,10 @@ dependencies:
   flutter:
     sdk: flutter
 
+  image_picker: ^1.1.1
+  qr_flutter: ^4.0.0
+
+
   cupertino_icons: ^1.0.8
   http: ^1.5.0
   shared_preferences: ^2.2.2   # <––– DITAMBAHKAN
@@ -25,3 +29,5 @@ flutter:
 
   assets:
     - assets/
+
+
