@@ -18,6 +18,7 @@ class _DompetPageState extends State<DompetPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: const Text("Dompet Saya"),
         backgroundColor: const Color(0xFF6A994E),
       ),

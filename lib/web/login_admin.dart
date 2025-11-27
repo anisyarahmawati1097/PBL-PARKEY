@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'dashboard_admin.dart';
 
 class LoginAdminPage extends StatefulWidget {
@@ -12,20 +15,68 @@ class _LoginAdminPageState extends State<LoginAdminPage> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  void _login() {
+  bool _isLoading = false;
+
+  Future<void> _login() async {
     final username = _usernameController.text.trim();
     final password = _passwordController.text.trim();
 
-    if (username == "admin" && password == "1234") {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const DashboardAdmin()),
-      );
-    } else {
+    if (username.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Username/Password salah")),
+        const SnackBar(content: Text("Username dan Password wajib diisi")),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final url = Uri.parse("http://192.168.115.134:8000/api/admin/login");
+
+final response = await http.post(
+  url,
+  headers: {
+    "Accept": "application/json",
+    "Content-Type": "application/json",
+  },
+  body: jsonEncode({
+    "username": username,
+    "password": password,
+  }),
+);
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && data["success"] == true) {
+        // Simpan token di SharedPreferences
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString("token", data["data"]["token"]);
+
+        // Arahkan ke Dashboard
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const DashboardAdmin()),
+          (route) => false,
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(data["message"] ?? "Login gagal")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Terjadi kesalahan: $e")),
       );
     }
+
+    setState(() => _isLoading = false);
+  }
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -60,16 +111,20 @@ class _LoginAdminPageState extends State<LoginAdminPage> {
                 controller: _passwordController,
                 obscureText: true,
                 decoration: const InputDecoration(labelText: "Password"),
+                onSubmitted: (_) => _login(),
               ),
               const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _login,
+                  onPressed: _isLoading ? null : _login,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
-                  child: const Text("LOGIN"),
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text("LOGIN"),
                 ),
               ),
             ],

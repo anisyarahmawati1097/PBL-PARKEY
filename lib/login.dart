@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'lupasandi.dart';
 import 'daftar.dart';
 
 class LoginPage extends StatefulWidget {
@@ -24,7 +24,7 @@ class _LoginPageState extends State<LoginPage> {
     final password = _passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
-      _showMessage("Semua field harus diisi.");
+      _showMessage("Semua kolom harus diisi.");
       return;
     }
 
@@ -54,7 +54,7 @@ class _LoginPageState extends State<LoginPage> {
 
       // --- Status 200 → Login Berhasil ---
       if (response.statusCode == 200) {
-        _showMessage("Login berhasil!");
+        _showMessage("Berhasil Masuk!");
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString("token", data["token"]);
@@ -89,7 +89,7 @@ class _LoginPageState extends State<LoginPage> {
       message = data["message"];
     }
 
-    _showMessage(message.isNotEmpty ? message : "Gagal masuk.");
+    _showMessage(message.isNotEmpty ? message : "Gagal Masuk!");
   }
 
   // =============================================
@@ -167,16 +167,20 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 10),
 
                 Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {},
-                    child: const Text(
-                      "Lupa kata sandi?",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ),
-
+  alignment: Alignment.centerRight,
+  child: TextButton(
+    onPressed: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => LupaPasswordPage()),
+      );
+    },
+    child: const Text(
+      "Lupa kata sandi?",
+      style: TextStyle(color: Colors.white),
+    ),
+  ),
+),
                 const SizedBox(height: 10),
 
                 SizedBox(

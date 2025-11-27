@@ -74,13 +74,8 @@ class _AktivitasPageState extends State<AktivitasPage> {
       child: Scaffold(
         backgroundColor: const Color(0xFFF2FAF5),
         appBar: AppBar(
-          backgroundColor: const Color(0xFF6A994E),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-          ),
+          automaticallyImplyLeading: false,
+          backgroundColor: const Color(0xFF6A994E),    
           title: const Text(
             "Aktivitas",
             style: TextStyle(color: Colors.white),

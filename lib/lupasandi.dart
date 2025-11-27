@@ -1,7 +1,7 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'reset_sandi.dart';
 
 class LupaPasswordPage extends StatefulWidget {
   const LupaPasswordPage({super.key});
@@ -24,7 +24,7 @@ class _LupaPasswordPageState extends State<LupaPasswordPage> {
     }
 
     try {
-      final url = Uri.parse("http://192.168.110.176:8000/api/lupa-password");
+      final url = Uri.parse("http://192.168.115.134:8000/api/lupa-password");
 
       final response = await http.post(
         url,
@@ -35,19 +35,24 @@ class _LupaPasswordPageState extends State<LupaPasswordPage> {
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              data["message"] ?? "Email reset telah dikirim",
-            ),
-          ),
-        );
+  if (!mounted) return;
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(data["message"] ?? "Email reset telah dikirim!"),
+    ),
+  );
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => const ResetPasswordPage(),
+    ),
+  );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              data["message"] ?? "Gagal mengirim permintaan",
-            ),
+            content:
+                Text(data["message"] ?? "Gagal mengirim permintaan!"),
           ),
         );
       }
@@ -118,23 +123,13 @@ class _LupaPasswordPageState extends State<LupaPasswordPage> {
                       padding: const EdgeInsets.symmetric(vertical: 15),
                     ),
                     child: const Text(
-                      "KIRIM LINK RESET",
+                      "KIRIM TOKEN RESET",
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
 
                 const SizedBox(height: 10),
-
-                Center(
-                  child: TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text(
-                      "Kembali ke Login",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ),
               ],
             ),
           ),

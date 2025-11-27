@@ -31,7 +31,7 @@ class _DaftarPageState extends State<DaftarPage> {
 
     if (username.isEmpty || email.isEmpty || password.isEmpty || fullName.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Isi semua field wajib terlebih dahulu")),
+        const SnackBar(content: Text("Semua kolom wajib diisi terlebih dahulu")),
       );
       return;
     }
@@ -56,7 +56,7 @@ class _DaftarPageState extends State<DaftarPage> {
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(data["message"] ?? "Berhasil daftar")),
+          SnackBar(content: Text(data["message"] ?? "Berhasil daftar!")),
         );
 
         Navigator.pushReplacement(
@@ -73,7 +73,7 @@ class _DaftarPageState extends State<DaftarPage> {
         }
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(msg.isNotEmpty ? msg : "Gagal daftar")),
+          SnackBar(content: Text(msg.isNotEmpty ? msg : "Gagal daftar!")),
         );
       }
     } catch (e) {
@@ -165,7 +165,7 @@ class _DaftarPageState extends State<DaftarPage> {
                 ),
                 const SizedBox(height: 15),
 
-                const Text("Username", style: TextStyle(color: Colors.white)),
+                const Text("Nama pengguna", style: TextStyle(color: Colors.white)),
                 const SizedBox(height: 5),
                 TextField(
                   controller: _usernameController,

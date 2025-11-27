@@ -74,7 +74,7 @@ class _PengaturanProfilPageState extends State<PengaturanProfilPage> {
 
     if (token == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Anda belum login")),
+        const SnackBar(content: Text("Anda belum masuk!")),
       );
       setState(() => _loading = false);
       return;
@@ -110,7 +110,7 @@ class _PengaturanProfilPageState extends State<PengaturanProfilPage> {
         prefs.setString("user", jsonEncode(updatedUser));
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Profil berhasil diperbarui")),
+          const SnackBar(content: Text("Profil berhasil diperbarui!")),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -235,7 +235,7 @@ class _PengaturanProfilPageState extends State<PengaturanProfilPage> {
                 minimumSize: const Size(double.infinity, 48),
               ),
               onPressed: _logout,
-              child: const Text("LOGOUT"),
+              child: const Text("KELUAR"), 
             ),
           ],
         ),
