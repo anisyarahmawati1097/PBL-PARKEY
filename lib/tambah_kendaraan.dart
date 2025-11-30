@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart'; // <= TAMBAHAN
 import 'bc.dart';
 
 class TambahKendaraanPage extends StatefulWidget {
@@ -13,39 +14,61 @@ class TambahKendaraanPage extends StatefulWidget {
 }
 
 class _TambahKendaraanPageState extends State<TambahKendaraanPage> {
-  String? jenisKendaraan = "Mobil";
-  String? merk;
-  String? model;
-  String? warna;
-  String? tahun;
-
+  String jenisKendaraan = "Mobil";
   final nomorPlatController = TextEditingController();
+  final merkController = TextEditingController();
+  final modelController = TextEditingController();
+  final warnaController = TextEditingController();
+  final tahunController = TextEditingController();
+
   File? foto;
 
-  /// Pick image
   Future<void> pickImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? picked = await picker.pickImage(source: ImageSource.gallery);
-
     if (picked != null) {
-      setState(() {
-        foto = File(picked.path);
-      });
+      setState(() => foto = File(picked.path));
     }
   }
 
-  /// Simpan kendaraan ke backend
   Future<void> simpanKendaraan() async {
-    var url = Uri.parse("http://192.168.115.131:8000/api/kendaraan/store");
+    if (nomorPlatController.text.isEmpty ||
+        merkController.text.isEmpty ||
+        modelController.text.isEmpty ||
+        warnaController.text.isEmpty ||
+        tahunController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Semua data wajib diisi")),
+      );
+      return;
+    }
 
+    // === Ambil user_id dari SharedPreferences ===
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? userId = prefs.getString("user_id");
+
+    final userJson = prefs.getString("user");
+    if (userJson == null) return;
+
+    final user = jsonDecode(userJson);
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("User tidak ditemukan, silakan login ulang")),
+      );
+      return;
+    }
+
+    var url = Uri.parse("http://192.168.110.68:8000/api/kendaraan/store");
     var request = http.MultipartRequest("POST", url);
+
     request.fields["plat_nomor"] = nomorPlatController.text;
-    request.fields["jenis"] = jenisKendaraan ?? "";
-    request.fields["merk"] = merk ?? "";
-    request.fields["model"] = model ?? "";
-    request.fields["warna"] = warna ?? "";
-    request.fields["tahun"] = tahun ?? "";
-    request.fields["pemilik"] = "User A";
+    request.fields["jenis"] = jenisKendaraan;
+    request.fields["merk"] = merkController.text;
+    request.fields["model"] = modelController.text;
+    request.fields["warna"] = warnaController.text;
+    request.fields["tahun"] = tahunController.text;
+    request.fields["pemilik"] = "User"; // bebas nanti bisa dari DB
+    request.fields["user_id"] = userId; // <= SUDAH TERTAUT KE USER LOGIN
 
     if (foto != null) {
       request.files.add(await http.MultipartFile.fromPath("foto", foto!.path));
@@ -54,16 +77,7 @@ class _TambahKendaraanPageState extends State<TambahKendaraanPage> {
     var response = await request.send();
 
     if (response.statusCode == 201) {
-      var resBody = await response.stream.bytesToString();
-      var jsonData = json.decode(resBody);
-      var kendaraanBaru = jsonData["data"];
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => QRCodePage(kendaraan: kendaraanBaru),
-        ),
-      );
+      Navigator.pop(context, true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Gagal menambah kendaraan (${response.statusCode})")),
@@ -83,83 +97,36 @@ class _TambahKendaraanPageState extends State<TambahKendaraanPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              "Pilih Kendaraan",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
+            const Text("Pilih Jenis Kendaraan",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Wrap(
               spacing: 16,
               children: [
-                _buildJenis("Mobil", Icons.directions_car),
-                _buildJenis("Motor", Icons.two_wheeler),
-                _buildJenis("Truk", Icons.local_shipping),
-                _buildJenis("Pickup", Icons.fire_truck),
+                _jenisChip("Mobil", Icons.directions_car),
+                _jenisChip("Motor", Icons.two_wheeler),
+                _jenisChip("Truk", Icons.local_shipping),
+                _jenisChip("Pickup", Icons.fire_truck),
               ],
             ),
             const SizedBox(height: 20),
-            TextFormField(
-              controller: nomorPlatController,
-              decoration: _decor("Plat Nomor Kendaraan"),
-            ),
+            textField(nomorPlatController, "Plat Nomor Kendaraan"),
             const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    decoration: _decor("Merk"),
-                    items: ["Toyota", "Honda", "Mitsubishi"]
-                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                        .toList(),
-                    onChanged: (val) => setState(() => merk = val),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    decoration: _decor("Model"),
-                    items: ["Avanza", "Jazz", "Xpander"]
-                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                        .toList(),
-                    onChanged: (val) => setState(() => model = val),
-                  ),
-                ),
-              ],
-            ),
+            textField(merkController, "Merk Kendaraan"),
             const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    decoration: _decor("Tahun Pembuatan"),
-                    items: ["2018", "2019", "2020", "2021", "2022"]
-                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                        .toList(),
-                    onChanged: (val) => setState(() => tahun = val),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    decoration: _decor("Warna"),
-                    items: ["Hitam", "Putih", "Merah", "Biru"]
-                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                        .toList(),
-                    onChanged: (val) => setState(() => warna = val),
-                  ),
-                ),
-              ],
-            ),
+            textField(modelController, "Model Kendaraan"),
+            const SizedBox(height: 12),
+            textField(tahunController, "Tahun Pembuatan", inputType: TextInputType.number),
+            const SizedBox(height: 12),
+            textField(warnaController, "Warna Kendaraan"),
             const SizedBox(height: 20),
-            const Text(
-              "Unggah foto pendukung",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
+            const Text("Unggah Foto Kendaraan",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             GestureDetector(
-              onTap: () => pickImage(),
+              onTap: pickImage,
               child: Container(
-                height: 120,
+                height: 150,
                 width: double.infinity,
                 decoration: BoxDecoration(
                   color: Colors.grey.shade300,
@@ -167,27 +134,20 @@ class _TambahKendaraanPageState extends State<TambahKendaraanPage> {
                 ),
                 child: Center(
                   child: foto == null
-                      ? const Text(
-                          "FOTO KENDARAAN\nSentuh untuk unggah",
-                          textAlign: TextAlign.center,
-                        )
+                      ? const Text("Sentuh untuk mengunggah foto")
                       : Image.file(foto!, fit: BoxFit.cover),
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
             Center(
               child: ElevatedButton(
+                onPressed: simpanKendaraan,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF386641),
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
                   padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                 ),
-                onPressed: () {
-                  simpanKendaraan();
-                },
                 child: const Text("Simpan Kendaraan"),
               ),
             ),
@@ -197,29 +157,31 @@ class _TambahKendaraanPageState extends State<TambahKendaraanPage> {
     );
   }
 
-  Widget _buildJenis(String value, IconData icon) {
-    return ChoiceChip(
-      avatar: Icon(
-        icon,
-        size: 20,
-        color: jenisKendaraan == value ? Colors.white : Colors.black54,
-      ),
-      label: Text(value),
-      selected: jenisKendaraan == value,
-      onSelected: (selected) => setState(() => jenisKendaraan = value),
-      selectedColor: const Color(0xFF6A994E),
-      labelStyle: TextStyle(
-        color: jenisKendaraan == value ? Colors.white : Colors.black,
+  Widget textField(TextEditingController c, String label,
+      {TextInputType inputType = TextInputType.text}) {
+    return TextFormField(
+      controller: c,
+      keyboardType: inputType,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        filled: true,
+        fillColor: Colors.grey.shade200,
       ),
     );
   }
 
-  InputDecoration _decor(String label) {
-    return InputDecoration(
-      labelText: label,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-      filled: true,
-      fillColor: Colors.grey.shade200,
+  Widget _jenisChip(String label, IconData icon) {
+    return ChoiceChip(
+      avatar: Icon(icon,
+          size: 20,
+          color: jenisKendaraan == label ? Colors.white : Colors.black54),
+      label: Text(label),
+      selected: jenisKendaraan == label,
+      onSelected: (selected) => setState(() => jenisKendaraan = label),
+      selectedColor: const Color(0xFF6A994E),
+      labelStyle:
+          TextStyle(color: jenisKendaraan == label ? Colors.white : Colors.black),
     );
   }
 }

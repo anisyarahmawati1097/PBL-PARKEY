@@ -39,7 +39,7 @@ Future<void> _resetPassword() async {
   }
 
   try {
-    final url = Uri.parse("http://192.168.115.131:8000/api/reset-password");
+    final url = Uri.parse("http://192.168.110.68:8000/api/reset-password");
 
     final response = await http.post(
       url,

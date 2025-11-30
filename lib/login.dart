@@ -29,7 +29,7 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     try {
-      final url = Uri.parse("http://192.168.115.131:8000/api/masuk");
+      final url = Uri.parse("http://192.168.110.68:8000/api/masuk");
 
       final response = await http.post(
         url,
@@ -59,6 +59,8 @@ class _LoginPageState extends State<LoginPage> {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString("token", data["token"]);
         await prefs.setString("user", jsonEncode(data["user"]));
+        await prefs.setString("user_id", data["user"]["id"].toString());
+
 
         if (!mounted) return;
         Navigator.pushReplacementNamed(context, '/main');

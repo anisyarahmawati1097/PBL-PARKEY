@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:flutter/material.dart';
+import 'riwayat.dart'; // <- import halaman RiwayatPage
 
 class AktivitasPage extends StatefulWidget {
   const AktivitasPage({super.key});
@@ -9,189 +10,180 @@ class AktivitasPage extends StatefulWidget {
 }
 
 class _AktivitasPageState extends State<AktivitasPage> {
-  late Timer _timer;
-  Duration _elapsed = Duration.zero;
-
-  // 🔹 Data dummy untuk aktivitas parkir aktif
-  final String tempatParkirAktif = "Grand Batam Mall";
-  final DateTime waktuMasukAktif =
-      DateTime.now().subtract(const Duration(minutes: 37, seconds: 42));
-
-  // 🔹 Data dummy untuk riwayat parkir
-  final List<Map<String, dynamic>> riwayatParkir = [
+  List<Map<String, dynamic>> aktivitasBerlangsung = [
     {
-      'tempat': 'SNL Food Tanjung Uma',
-      'masuk': DateTime.now().subtract(const Duration(hours: 4, minutes: 15)),
-      'keluar': DateTime.now().subtract(const Duration(hours: 3, minutes: 5)),
-    },
-    {
-      'tempat': 'Grand Batam Mall',
-      'masuk': DateTime.now().subtract(const Duration(days: 1, hours: 2, minutes: 30)),
-      'keluar': DateTime.now().subtract(const Duration(days: 1, hours: 1, minutes: 40)),
+      "lokasi": "Grand Batam Mall",
+      "merek": "Honda Vario 125",
+      "plat": "BP 1234 AB",
+      "jamMasuk": DateTime.now().subtract(const Duration(minutes: 42)),
+      "tarifFirstHour": 3000,
+      "tarifNextHour": 2000,
     },
   ];
+
+  List<Map<String, dynamic>> riwayat = [];
+  Timer? timer;
 
   @override
   void initState() {
     super.initState();
-    _startTimer();
-  }
-
-  void _startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        _elapsed = DateTime.now().difference(waktuMasukAktif);
-      });
+    timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
     });
   }
 
   @override
   void dispose() {
-    _timer.cancel();
+    timer?.cancel();
     super.dispose();
   }
 
-  String _formatDuration(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final hours = twoDigits(duration.inHours);
-    final minutes = twoDigits(duration.inMinutes.remainder(60));
-    final seconds = twoDigits(duration.inSeconds.remainder(60));
-    return "$hours:$minutes:$seconds";
+  String formatDuration(Duration d) {
+    String h = d.inHours.toString().padLeft(2, '0');
+    String m = (d.inMinutes % 60).toString().padLeft(2, '0');
+    String s = (d.inSeconds % 60).toString().padLeft(2, '0');
+    return "$h:$m:$s";
   }
 
-  int _hitungTarif(Duration durasi) {
-    const int tarifAwal = 2000;
-    const int tarifPerJam = 1000;
-    final totalJam = (durasi.inMinutes / 60).ceil();
-    if (totalJam <= 1) return tarifAwal;
-    return tarifAwal + ((totalJam - 1) * tarifPerJam);
+  String formatJam(DateTime dt) {
+    return "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')} WIB";
+  }
+
+  int hitungBiaya(Duration durasi, int tarifFirst, int tarifNext) {
+    final hours = (durasi.inMinutes / 60).ceil();
+    return (hours <= 1) ? tarifFirst : tarifFirst + ((hours - 1) * tarifNext);
+  }
+
+  void akhiriParkir(int index) {
+    final data = aktivitasBerlangsung[index];
+    final jamMasuk = data["jamMasuk"];
+    final durasi = DateTime.now().difference(jamMasuk);
+    final biaya = hitungBiaya(
+        durasi, data["tarifFirstHour"], data["tarifNextHour"]);
+
+    setState(() {
+      aktivitasBerlangsung.removeAt(index);
+      riwayat.add({
+        "lokasi": data["lokasi"],
+        "merek": data["merek"],
+        "plat": data["plat"],
+        "jamMasuk": formatJam(jamMasuk),
+        "jamKeluar": formatJam(DateTime.now()),
+        "durasi": formatDuration(durasi),
+        "total": biaya,
+      });
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        backgroundColor: const Color(0xFFF2FAF5),
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          backgroundColor: const Color(0xFF6A994E),    
-          title: const Text(
-            "Aktivitas",
-            style: TextStyle(color: Colors.white),
-          ),
-          bottom: const TabBar(
-            indicatorColor: Colors.white,
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white70,
-            tabs: [
-              Tab(text: "Aktivitas"),
-              Tab(text: "Riwayat"),
-            ],
-          ),
-        ),
-
-        // 🟩 Body Tab
-        body: TabBarView(
-          children: [
-            // === TAB 1: Aktivitas Sedang Berlangsung ===
-            Center(
-              child: Card(
-                margin: const EdgeInsets.all(20),
-                elevation: 5,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15)),
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Aktivitas Sedang Berlangsung",
-                        style:
-                            TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 15),
-                      Row(
-                        children: [
-                          const Icon(Icons.local_parking, color: Colors.green),
-                          const SizedBox(width: 10),
-                          Text(
-                            tempatParkirAktif,
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          const Icon(Icons.access_time, color: Colors.orange),
-                          const SizedBox(width: 10),
-                          Text(
-                            "Masuk: ${waktuMasukAktif.hour.toString().padLeft(2, '0')}:${waktuMasukAktif.minute.toString().padLeft(2, '0')} WIB",
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          const Icon(Icons.timer, color: Colors.blue),
-                          const SizedBox(width: 10),
-                          Text(
-                            "Durasi: ${_formatDuration(_elapsed)}",
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 25),
-                      Center(
-                        child: ElevatedButton.icon(
-                          onPressed: () {},
-                          icon: const Icon(Icons.exit_to_app),
-                          label: const Text("Akhiri Parkir"),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF6B8E4E),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 25, vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
+    return Scaffold(
+      backgroundColor: const Color(0xFFE0FFC2),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF6A994E),
+        title: const Text("Aktivitas", style: TextStyle(color: Color.fromARGB(255, 0, 0, 0))),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.history),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => RiwayatPage(riwayat: riwayat),
                 ),
-              ),
-            ),
-
-            // === TAB 2: Riwayat Parkir ===
-            ListView.builder(
+              );
+            },
+          )
+        ],
+      ),
+      body: aktivitasBerlangsung.isEmpty
+          ? const Center(
+              child: Text("Belum ada aktivitas parkir", style: TextStyle(fontSize: 16)),
+            )
+          : ListView.builder(
               padding: const EdgeInsets.all(16),
-              itemCount: riwayatParkir.length,
+              itemCount: aktivitasBerlangsung.length,
               itemBuilder: (context, index) {
-                final data = riwayatParkir[index];
-                final durasi = data['keluar'].difference(data['masuk']);
-                final tarif = _hitungTarif(durasi);
-                return Card(
-                  margin: const EdgeInsets.symmetric(vertical: 8),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  child: ListTile(
-                    leading: const Icon(Icons.local_parking,
-                        color: Color(0xFF6B8E4E)),
-                    title: Text(data['tempat']),
-                    subtitle: Text(
-                      "Masuk: ${data['masuk'].hour.toString().padLeft(2, '0')}:${data['masuk'].minute.toString().padLeft(2, '0')} WIB\n"
-                      "Keluar: ${data['keluar'].hour.toString().padLeft(2, '0')}:${data['keluar'].minute.toString().padLeft(2, '0')} WIB\n"
-                      "Durasi: ${_formatDuration(durasi)}\n"
-                      "Tarif: Rp $tarif",
-                    ),
-                  ),
+                final data = aktivitasBerlangsung[index];
+                final jamMasuk = data["jamMasuk"];
+                final durasi = DateTime.now().difference(jamMasuk);
+                final biaya = hitungBiaya(
+                    durasi, data["tarifFirstHour"], data["tarifNextHour"]);
+
+                return AktifCard(
+                  lokasi: data["lokasi"],
+                  merek: data["merek"],
+                  plat: data["plat"],
+                  jamMasuk: jamMasuk,
+                  durasi: formatDuration(durasi),
+                  biaya: biaya,
+                  onAkhiri: () => akhiriParkir(index),
                 );
               },
+            ),
+    );
+  }
+}
+
+class AktifCard extends StatelessWidget {
+  final String lokasi;
+  final String merek;
+  final String plat;
+  final DateTime jamMasuk;
+  final String durasi;
+  final int biaya;
+  final VoidCallback onAkhiri;
+
+  const AktifCard({
+    super.key,
+    required this.lokasi,
+    required this.merek,
+    required this.plat,
+    required this.jamMasuk,
+    required this.durasi,
+    required this.biaya,
+    required this.onAkhiri,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: const Color(0xFFF8F4FF),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      elevation: 0,
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text("Aktivitas Sedang Berlangsung", style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                const Icon(Icons.location_on, color: Colors.green),
+                const SizedBox(width: 8),
+                Expanded(child: Text(lokasi, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600))),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text("$merek - $plat", style: const TextStyle(fontSize: 14)),
+            const SizedBox(height: 6),
+            Text("Masuk: ${jamMasuk.hour.toString().padLeft(2,'0')}:${jamMasuk.minute.toString().padLeft(2,'0')} WIB"),
+            Text("Durasi: $durasi"),
+            Text("Biaya: Rp $biaya", style: const TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 18),
+            Center(
+              child: ElevatedButton.icon(
+                onPressed: onAkhiri,
+                icon: const Icon(Icons.exit_to_app),
+                label: const Text("Akhiri Parkir"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6A994E),
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+                ),
+              ),
             ),
           ],
         ),

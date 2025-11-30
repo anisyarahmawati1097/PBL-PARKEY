@@ -5,13 +5,11 @@ import 'pengaturan_profil.dart';
 class AkunPage extends StatefulWidget {
   final String username;
   final String email;
-  final String phone;
 
   const AkunPage({
     super.key,
     required this.username,
     required this.email,
-    required this.phone,
   });
 
   @override
@@ -21,14 +19,12 @@ class AkunPage extends StatefulWidget {
 class _AkunPageState extends State<AkunPage> {
   late String username;
   late String email;
-  late String phone;
 
   @override
   void initState() {
     super.initState();
     username = widget.username;
     email = widget.email;
-    phone = widget.phone;
   }
 
   @override
@@ -51,7 +47,6 @@ class _AkunPageState extends State<AkunPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(email),
-                Text(phone),
               ],
             ),
           ),
@@ -78,7 +73,6 @@ class _AkunPageState extends State<AkunPage> {
                   builder: (_) => PengaturanProfilPage(
                     username: username,
                     email: email,
-                    phone: phone,
                   ),
                 ),
               );
@@ -88,7 +82,6 @@ class _AkunPageState extends State<AkunPage> {
                 setState(() {
                   username = result['username'] ?? username;
                   email = result['email'] ?? email;
-                  phone = result['phone'] ?? phone;
                 });
               }
             },

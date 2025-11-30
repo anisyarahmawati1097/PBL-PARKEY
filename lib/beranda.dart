@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'aktivitas.dart';
-import 'dompet.dart';
+import 'riwayat.dart';
 import 'akun.dart';
 import 'lokasi.dart';
 import 'bc.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'daftarkendaraan.dart';
+
 
 
 class BerandaPage extends StatefulWidget {
@@ -29,18 +31,20 @@ class _BerandaPageState extends State<BerandaPage> {
 
   // Fungsi fetchKendaraanTerbaru taruh di sini
   Future<void> fetchKendaraanTerbaru() async {
-    final response = await http.get(Uri.parse("http://192.168.115.131:8000/api/kendaraan/store"));
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body)['data'];
-      if (data.isNotEmpty) {
-        setState(() {
-          kendaraanTerbaru = data.last; // ambil kendaraan terakhir
-        });
-      }
-    } else {
-      print("Gagal mengambil data kendaraan: ${response.statusCode}");
+  final response = await http.get(Uri.parse("http://192.168.110.68:8000/api/kendaraan"));
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body)['data'];
+
+    if (data != null && data.isNotEmpty) {
+      setState(() {
+        kendaraanTerbaru = data.last; // Ambil kendaraan terakhir
+      });
     }
+  } else {
+    print("Gagal mengambil data kendaraan: ${response.statusCode}");
   }
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -63,7 +67,7 @@ class _BerandaPageState extends State<BerandaPage> {
                 Text(
                   "Halo, ${widget.username ?? 'User'}",
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: Color.fromARGB(255, 0, 0, 0),
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
@@ -72,7 +76,7 @@ class _BerandaPageState extends State<BerandaPage> {
                 const Text(
                   "Mau kemana hari ini?",
                   style: TextStyle(
-                    color: Colors.white70,
+                    color: Color.fromARGB(179, 0, 0, 0),
                     fontSize: 12,
                   ),
                 ),
@@ -146,20 +150,17 @@ class _BerandaPageState extends State<BerandaPage> {
                           ],
                         ),
                       ),
-                     GestureDetector(
+                     
+                      GestureDetector(
   onTap: () {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => QRCodePage(
-          kendaraan: kendaraanTerbaru ?? {
-            "id": 0,
-            "plat_nomor": "Tidak ada",
-          },
-        ),
+        builder: (_) => DaftarKendaraanPage(),
       ),
     );
   },
+
   child: Column(
     children: const [
       Icon(Icons.qr_code, size: 40, color: Colors.black87),
