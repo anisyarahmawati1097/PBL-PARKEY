@@ -82,7 +82,7 @@ class _PengaturanProfilPageState extends State<PengaturanProfilPage> {
 
     try {
       final response = await http.post(
-        Uri.parse("http://192.168.110.68:8000/api/update-profile"),
+        Uri.parse("http://192.168.110.224:8000/api/update-profile"),
         headers: {
           "Authorization": "Bearer $token",
           "Accept": "application/json",

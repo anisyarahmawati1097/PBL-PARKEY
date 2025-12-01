@@ -58,7 +58,7 @@ class _TambahKendaraanPageState extends State<TambahKendaraanPage> {
       return;
     }
 
-    var url = Uri.parse("http://192.168.110.68:8000/api/kendaraan/store");
+    var url = Uri.parse("http://192.168.110.224:8000/api/kendaraan/store");
     var request = http.MultipartRequest("POST", url);
 
     request.fields["plat_nomor"] = nomorPlatController.text;

@@ -1,10 +1,41 @@
 import 'package:flutter/material.dart';
-import 'data.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'DetailPengendaraPage.dart'; // halaman detail kendaraan
 
-class PengendaraPage extends StatelessWidget {
+class PengendaraPage extends StatefulWidget {
   const PengendaraPage({super.key});
 
-  Widget _buildPengendaraCard(String nama, String kendaraan, String noPlat) {
+  @override
+  State<PengendaraPage> createState() => _PengendaraPageState();
+}
+
+class _PengendaraPageState extends State<PengendaraPage> {
+  List<dynamic> users = [];
+  bool loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUsers();
+  }
+
+  Future fetchUsers() async {
+    final res = await http.get(
+      Uri.parse("http://192.168.110.224:8000/api/users"),
+    );
+
+    if (res.statusCode == 200) {
+      setState(() {
+        users = jsonDecode(res.body);
+        loading = false;
+      });
+    } else {
+      setState(() => loading = false);
+    }
+  }
+
+  Widget _buildUserCard(dynamic user) {
     return Card(
       elevation: 3,
       margin: const EdgeInsets.symmetric(vertical: 10),
@@ -14,16 +45,23 @@ class PengendaraPage extends StatelessWidget {
           backgroundColor: Colors.blue[100],
           child: const Icon(Icons.person, color: Colors.blue),
         ),
-        title: Text(nama,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-        subtitle: Text("$kendaraan\n$noPlat"),
-        isThreeLine: true,
-        trailing: IconButton(
-          icon: const Icon(Icons.more_vert),
-          onPressed: () {
-            // fitur detail / edit nanti bisa ditambahkan
-          },
+        title: Text(
+          user['name'],
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
+        subtitle: Text(user['email']),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => DetailPengendaraPage(
+                userId: user['id'],
+                namaPengendara: user['name'],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -35,13 +73,15 @@ class PengendaraPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text("👥 Data Pengendara",
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+          
           const SizedBox(height: 20),
 
-          _buildPengendaraCard("Andi Saputra", "Motor - Honda Beat", "BP 1234 XY"),
-          _buildPengendaraCard("Budi Santoso", "Mobil - Toyota Avanza", "BP 9876 ZZ"),
-          _buildPengendaraCard("Siti Aminah", "Motor - Yamaha Nmax", "BP 5678 AB"),
+          if (loading) const Center(child: CircularProgressIndicator()),
+
+          if (!loading && users.isEmpty)
+            const Text("Tidak ada pengguna"),
+
+          for (var user in users) _buildUserCard(user),
         ],
       ),
     );

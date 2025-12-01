@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
-import 'data.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+// PAGES
 import 'pengendara_page.dart';
 import 'laporan_page.dart';
 import 'lokasi_page.dart';
+
+// WIDGETS
 import 'widgets/sidebar.dart';
 import 'widgets/header.dart';
 
@@ -15,6 +20,42 @@ class DashboardAdmin extends StatefulWidget {
 
 class _DashboardAdminState extends State<DashboardAdmin> {
   String _selectedPage = "dashboard";
+
+  int pengendaraCount = 0;
+  int lokasiCount = 0;
+  int laporanCount = 0;
+
+  bool loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchStats();
+  }
+
+  Future fetchStats() async {
+    try {
+      final res = await http.get(
+        Uri.parse("http://192.168.110.224:8000/api/dashboard/stats"),
+      );
+
+      if (res.statusCode == 200) {
+        final json = jsonDecode(res.body);
+
+        setState(() {
+          pengendaraCount = json['pengendara'];
+          lokasiCount = json['lokasi'];
+          laporanCount = json['laporan'];
+          loading = false;
+        });
+      } else {
+        setState(() => loading = false);
+      }
+    } catch (e) {
+      print("Error fetch stats: $e");
+      setState(() => loading = false);
+    }
+  }
 
   Widget _getPage(String page) {
     switch (page) {
@@ -35,7 +76,6 @@ class _DashboardAdminState extends State<DashboardAdmin> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header sambutan
           Row(
             children: [
               CircleAvatar(
@@ -47,57 +87,42 @@ class _DashboardAdminState extends State<DashboardAdmin> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: const [
-                  Text(
-                    "Halo, Admin 👋",
-                    style: TextStyle(fontSize: 18, color: Colors.black54),
-                  ),
-                  Text(
-                    "Selamat Datang di Panel",
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
+                  Text("Halo, Admin 👋",
+                      style: TextStyle(fontSize: 18, color: Colors.black54)),
+                  Text("Selamat Datang di Panel",
+                      style:
+                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                 ],
               ),
             ],
           ),
+
           const SizedBox(height: 24),
 
-          // Statistik umum
-          Row(
-            children: [
-              _buildStatCard("Pengendara", "120", Icons.people, Colors.blue),
-              const SizedBox(width: 12),
-              _buildStatCard("Lokasi", "2", Icons.location_on, Colors.orange),
-              const SizedBox(width: 12),
-              _buildStatCard("Laporan", "30", Icons.insert_chart, Colors.red),
-            ],
-          ),
+        
 
-          const SizedBox(height: 28),
+          const SizedBox(height: 24),
 
-          // Ringkasan slot parkir
-          const Text(
-            "Ringkasan Slot Parkir",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 12),
+          if (loading) const Center(child: CircularProgressIndicator()),
 
-          _buildLokasiSummary(
-            "Grand Mall",
-            total: 12,
-            occupied: 4,
-          ),
-          const SizedBox(height: 12),
-          _buildLokasiSummary(
-            "SNL Food",
-            total: 8,
-            occupied: 3,
-          ),
+          if (!loading)
+            Row(
+              children: [
+                _buildStatCard("Pengendara", pengendaraCount.toString(),
+                    Icons.people, Colors.blue),
+                const SizedBox(width: 12),
+                _buildStatCard("Lokasi", lokasiCount.toString(),
+                    Icons.location_on, Colors.orange),
+                const SizedBox(width: 12),
+                _buildStatCard("Laporan", laporanCount.toString(),
+                    Icons.insert_chart, Colors.red),
+              ],
+            ),
         ],
       ),
     );
   }
 
-  // Kartu statistik umum
   Widget _buildStatCard(
       String title, String value, IconData icon, Color color) {
     return Expanded(
@@ -126,68 +151,11 @@ class _DashboardAdminState extends State<DashboardAdmin> {
     );
   }
 
-  // Ringkasan slot per lokasi
-  Widget _buildLokasiSummary(String nama,
-      {required int total, required int occupied}) {
-    final kosong = total - occupied;
-    final persen = ((occupied / total) * 100).toStringAsFixed(0);
-
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            // Nama lokasi
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  nama,
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 6),
-                Text("Total Slot: $total"),
-                Text("Terisi: $occupied | Kosong: $kosong"),
-              ],
-            ),
-
-            // Persentase
-            Column(
-              children: [
-                Text(
-                  "$persen%",
-                  style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: occupied / total > 0.7
-                          ? Colors.red
-                          : Colors.green[700]),
-                ),
-                const Text("Terisi"),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: Header(
-        title: _selectedPage == "dashboard"
-            ? "Dashboard Admin"
-            : _selectedPage == "pengendara"
-                ? "Data Pengendara"
-                : _selectedPage == "lokasi"
-                    ? "Lokasi Parkir"
-                    : "Laporan",
-      ),
+          title: _selectedPage == "dashboard" ? "Dashboard Admin" : "Menu"),
       drawer: Sidebar(
         currentPage: _selectedPage,
         onMenuTap: (page) {

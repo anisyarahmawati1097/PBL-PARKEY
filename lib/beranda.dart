@@ -31,7 +31,7 @@ class _BerandaPageState extends State<BerandaPage> {
 
   // Fungsi fetchKendaraanTerbaru taruh di sini
   Future<void> fetchKendaraanTerbaru() async {
-  final response = await http.get(Uri.parse("http://192.168.110.68:8000/api/kendaraan"));
+  final response = await http.get(Uri.parse("http://192.168.110.224:8000/api/kendaraan"));
   
   if (response.statusCode == 200) {
     final data = jsonDecode(response.body)['data'];

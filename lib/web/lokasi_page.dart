@@ -3,91 +3,82 @@ import 'package:flutter/material.dart';
 class LokasiPageAdmin extends StatelessWidget {
   const LokasiPageAdmin({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 2, // 2 lokasi: Grand Mall & SNL Food
-      child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.green,
-          title: const Text("Slot Parkir"),
-          bottom: const TabBar(
-            tabs: [
-              Tab(text: "Grand Mall"),
-              Tab(text: "SNL Food"),
-            ],
-          ),
-        ),
-        body: const TabBarView(
+  Widget _buildLokasiSummary(String nama,
+      {required int total, required int occupied}) {
+    final kosong = total - occupied;
+    final persen = ((occupied / total) * 100).toStringAsFixed(0);
+
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            SlotParkirView(
-              lokasi: "Grand Mall",
-              totalSlot: 20,
-              occupied: [1, 2, 7, 10], // slot terisi
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  nama,
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 6),
+                Text("Total Slot: $total"),
+                Text("Terisi: $occupied | Kosong: $kosong"),
+              ],
             ),
-            SlotParkirView(
-              lokasi: "SNL Food",
-              totalSlot: 15,
-              occupied: [3, 5, 9], // slot terisi
+
+            Column(
+              children: [
+                Text(
+                  "$persen%",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: occupied / total > 0.7
+                        ? Colors.red
+                        : Colors.green[700],
+                  ),
+                ),
+                const Text("Terisi"),
+              ],
             ),
           ],
         ),
       ),
     );
   }
-}
-
-class SlotParkirView extends StatelessWidget {
-  final String lokasi;
-  final int totalSlot;
-  final List<int> occupied;
-
-  const SlotParkirView({
-    super.key,
-    required this.lokasi,
-    required this.totalSlot,
-    required this.occupied,
-  });
 
   @override
   Widget build(BuildContext context) {
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 80, // 🔥 ukuran maksimal slot
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        childAspectRatio: 1, // biar kotak (persegi)
-      ),
-      itemCount: totalSlot,
-      itemBuilder: (context, index) {
-        final slotNumber = index + 1;
-        final isOccupied = occupied.contains(slotNumber);
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Lokasi Parkir",
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 20),
 
-        return Container(
-          decoration: BoxDecoration(
-            color: isOccupied ? Colors.red[400] : Colors.green[400],
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: const [
-              BoxShadow(
-                color: Colors.black26,
-                blurRadius: 3,
-                offset: Offset(2, 2),
-              ),
-            ],
+          // Copy dari dashboard
+          _buildLokasiSummary(
+            "Grand Mall",
+            total: 12,
+            occupied: 4,
           ),
-          child: Center(
-            child: Text(
-              "S$slotNumber",
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                fontSize: 14,
-              ),
-            ),
+          const SizedBox(height: 12),
+
+          _buildLokasiSummary(
+            "SNL Food",
+            total: 8,
+            occupied: 3,
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 }
