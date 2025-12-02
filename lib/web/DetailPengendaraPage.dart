@@ -29,7 +29,7 @@ class _DetailPengendaraPageState extends State<DetailPengendaraPage> {
   Future fetchKendaraan() async {
     try {
       final res = await http.get(
-        Uri.parse("http://192.168.58.134:8000/api/pengendara/${widget.userId}/kendaraan"),
+        Uri.parse("http://192.168.14.134:8000/api/pengendara/${widget.userId}/kendaraan"),
       );
 
       if (res.statusCode == 200) {

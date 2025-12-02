@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'bc.dart'; // halaman QR Code
+import 'bc.dart';
 
 class DaftarKendaraanPage extends StatefulWidget {
   @override
@@ -32,7 +32,7 @@ class _DaftarKendaraanPageState extends State<DaftarKendaraanPage> {
     }
 
     final response = await http.get(
-      Uri.parse("http://192.168.110.224:8000/api/kendaraan?user_id=$userId"),
+      Uri.parse("http://192.168.14.134:8000/api/kendaraan?user_id=$userId")
     );
 
     if (response.statusCode == 200) {
@@ -73,45 +73,25 @@ class _DaftarKendaraanPageState extends State<DaftarKendaraanPage> {
                     return Card(
                       color: const Color.fromARGB(255, 181, 223, 140),
                       elevation: 4,
-                      margin:
-                          const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      margin: const EdgeInsets.symmetric(
+                          vertical: 8, horizontal: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                            vertical: 12, horizontal: 20),
-                        leading: const Icon(
-                          Icons.directions_car,
-                          size: 40,
-                          color: Colors.black,
-                        ),
+                        leading: const Icon(Icons.directions_car, size: 40),
                         title: Text(
                           (item["plat_nomor"] ?? "").toUpperCase(),
                           style: const TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
+                              fontWeight: FontWeight.bold, fontSize: 18),
                         ),
-                        subtitle: Text(
-                          item["jenis"] ?? "Kendaraan",
-                          style: const TextStyle(
-                            color: Colors.black87,
-                            fontSize: 15,
-                          ),
-                        ),
-                        trailing: const Icon(
-                          Icons.chevron_right,
-                          color: Colors.black,
-                          size: 32,
-                        ),
+                        subtitle: Text(item["jenis"] ?? "Kendaraan"),
+                        trailing: const Icon(Icons.chevron_right, size: 32),
                         onTap: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) =>
-                                  QRCodePage(kendaraan: item),
+                              builder: (_) => QRCodePage(kendaraan: item),
                             ),
                           );
                         },

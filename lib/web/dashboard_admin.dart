@@ -36,7 +36,7 @@ class _DashboardAdminState extends State<DashboardAdmin> {
   Future fetchStats() async {
     try {
       final res = await http.get(
-        Uri.parse("http://192.168.110.224:8000/api/dashboard/stats"),
+        Uri.parse("http://192.168.14.134:8000/api/dashboard/stats"),
       );
 
       if (res.statusCode == 200) {

@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart'; // <= TAMBAHAN
-import 'bc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class TambahKendaraanPage extends StatefulWidget {
   const TambahKendaraanPage({super.key});
@@ -23,6 +21,7 @@ class _TambahKendaraanPageState extends State<TambahKendaraanPage> {
 
   File? foto;
 
+  // Ambil gambar dari galeri
   Future<void> pickImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? picked = await picker.pickImage(source: ImageSource.gallery);
@@ -31,6 +30,7 @@ class _TambahKendaraanPageState extends State<TambahKendaraanPage> {
     }
   }
 
+  // Simpan kendaraan ke backend
   Future<void> simpanKendaraan() async {
     if (nomorPlatController.text.isEmpty ||
         merkController.text.isEmpty ||
@@ -43,40 +43,50 @@ class _TambahKendaraanPageState extends State<TambahKendaraanPage> {
       return;
     }
 
-    // === Ambil user_id dari SharedPreferences ===
+    // Ambil user_id dan token dari SharedPreferences
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? userId = prefs.getString("user_id");
+    String? userId = prefs.getString("user_id"); // ini akan dikirim sebagai users_id
+    String? token = prefs.getString("token");
 
-    final userJson = prefs.getString("user");
-    if (userJson == null) return;
-
-    final user = jsonDecode(userJson);
-    if (userId == null) {
+    if (userId == null || token == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("User tidak ditemukan, silakan login ulang")),
       );
       return;
     }
 
-    var url = Uri.parse("http://192.168.110.224:8000/api/kendaraan/store");
+    var url = Uri.parse("http://192.168.14.134:8000/api/kendaraan/store");
     var request = http.MultipartRequest("POST", url);
 
+    request.headers.addAll({
+      "Accept": "application/json",
+      "Authorization": "Bearer $token",
+    });
+
+    // Field sesuai migration Laravel
     request.fields["plat_nomor"] = nomorPlatController.text;
     request.fields["jenis"] = jenisKendaraan;
     request.fields["merk"] = merkController.text;
     request.fields["model"] = modelController.text;
     request.fields["warna"] = warnaController.text;
     request.fields["tahun"] = tahunController.text;
-    request.fields["pemilik"] = "User"; // bebas nanti bisa dari DB
-    request.fields["user_id"] = userId; // <= SUDAH TERTAUT KE USER LOGIN
+    request.fields["pemilik"] = "User";
+    request.fields["user_id"] = userId; // <-- sesuaikan dengan migration
 
+    // Upload foto jika ada
     if (foto != null) {
       request.files.add(await http.MultipartFile.fromPath("foto", foto!.path));
     }
 
+    // Kirim request
     var response = await request.send();
+    var responseBody = await response.stream.bytesToString();
+    print("RESPONSE: $responseBody");
 
     if (response.statusCode == 201) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Kendaraan berhasil ditambahkan")),
+      );
       Navigator.pop(context, true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

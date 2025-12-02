@@ -20,10 +20,10 @@ class QRCodePage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: const Color(0xFF6A994E),
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: const IconThemeData(color: Color.fromARGB(255, 0, 0, 0)),
         title: const Text(
           "QR Code",
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Color.fromARGB(255, 0, 0, 0)),
         ),
       ),
       body: Column(
@@ -36,7 +36,7 @@ class QRCodePage extends StatelessWidget {
               "QR Code ini digunakan pada saat masuk \n"
               "dan keluar dari pusat perbelanjaan.\n"
               "Silahkan Scan QR Code ini",
-              style: TextStyle(color: Colors.white, fontSize: 18),
+              style: TextStyle(color: Color.fromARGB(255, 0, 0, 0), fontSize: 18),
               textAlign: TextAlign.left,
             ),
           ),
