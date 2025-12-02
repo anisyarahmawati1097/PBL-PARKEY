@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/web/login_admin.dart';
+import 'package:flutter_application_1/admin/login_admin.dart';
 import 'dashboard_admin.dart'; // pastikan impor file yg benar
 
 void main() {
