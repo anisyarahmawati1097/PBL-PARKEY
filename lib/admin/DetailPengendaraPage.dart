@@ -29,7 +29,7 @@ class _DetailPengendaraPageState extends State<DetailPengendaraPage> {
   Future fetchKendaraan() async {
     try {
       final res = await http.get(
-        Uri.parse("http://192.168.14.134:8000/api/pengendara/${widget.userId}/kendaraan"),
+        Uri.parse("http://192.168.217.134:8000/api/pengendara/${widget.userId}/kendaraan"),
       );
 
       if (res.statusCode == 200) {
@@ -76,7 +76,9 @@ class _DetailPengendaraPageState extends State<DetailPengendaraPage> {
     return Card(
       elevation: 3,
       margin: const EdgeInsets.symmetric(vertical: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
@@ -84,15 +86,24 @@ class _DetailPengendaraPageState extends State<DetailPengendaraPage> {
             CircleAvatar(
               radius: 30,
               backgroundColor: Colors.green[100],
-              child: Icon(getJenisIcon(jenis), size: 28, color: Colors.green),
+              child: Icon(
+                getJenisIcon(jenis),
+                size: 28,
+                color: Colors.green,
+              ),
             ),
             const SizedBox(width: 15),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("$jenis - $merk",
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text(
+                    "$jenis - $merk",
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   const SizedBox(height: 6),
                   Text("Plat Nomor : $plat"),
                   Text("Model      : $model"),
@@ -111,44 +122,66 @@ class _DetailPengendaraPageState extends State<DetailPengendaraPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.green,
         title: const Text(
           "Detail Pengendara",
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
       ),
+
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              children: const [
-                Icon(Icons.person, size: 26, color: Colors.blue),
-                SizedBox(width: 8),
+              children: [
+                const Icon(Icons.person, size: 26, color: Colors.blue),
+                const SizedBox(width: 8),
                 Text(
-                  "Pengendara",
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  widget.namaPengendara,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Text(
+                  "|",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Text(
+                  "Daftar Kendaraan",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
-            ),
-            Text(
-              widget.namaPengendara,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              "Daftar Kendaraan",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
             ),
 
             const SizedBox(height: 10),
 
-            if (loading) const Center(child: CircularProgressIndicator()),
+            if (loading)
+              const Center(child: CircularProgressIndicator()),
 
             if (!loading && kendaraanList.isEmpty)
               const Padding(
                 padding: EdgeInsets.only(top: 40),
-                child: Center(child: Text("Tidak ada kendaraan", style: TextStyle(fontSize: 16))),
+                child: Center(
+                  child: Text(
+                    "Tidak ada kendaraan",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
               ),
 
             for (var item in kendaraanList) _buildKendaraanCard(item),

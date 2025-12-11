@@ -31,28 +31,38 @@ class _LoginAdminPageState extends State<LoginAdminPage> {
     setState(() => _isLoading = true);
 
     try {
-      final url = Uri.parse("http://192.168.14.134:8000/api/admin/login");
+      final url = Uri.parse("http://192.168.217.134:8000/api/admin/login");
 
-final response = await http.post(
-  url,
-  headers: {
-    "Accept": "application/json",
-    "Content-Type": "application/json",
-  },
-  body: jsonEncode({
-    "username": username,
-    "password": password,
-  }),
-);
+      final response = await http.post(
+        url,
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+        },
+        body: jsonEncode({
+          "username": username,
+          "password": password,
+        }),
+      );
 
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 && data["success"] == true) {
-        // Simpan token di SharedPreferences
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString("token", data["data"]["token"]);
+        final admin = data["data"]["admin"];
+        final token = data["data"]["token"];
 
-        // Arahkan ke Dashboard
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+
+        await prefs.setString("token", token);
+        await prefs.setInt("id_admin", admin["id_admin"]);
+        await prefs.setString("username", admin["username"]);
+        await prefs.setString("nama_admin", admin["nama_admin"]);
+
+        await prefs.setInt("lokasi_id", admin["id_lokasi"] ?? 0);
+        await prefs.setString("nama_lokasi", admin["nama_lokasi"] ?? "");
+        await prefs.setString("alamat_lokasi", admin["alamat_lokasi"] ?? "");
+
+
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (_) => const DashboardAdmin()),
@@ -84,51 +94,68 @@ final response = await http.post(
     return Scaffold(
       backgroundColor: Colors.green.shade700,
       body: Center(
-        child: Container(
-          width: 400,
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                "Admin Login",
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // === LOGO DI LUAR KOTAK ===
+            Image.asset(
+              'assets/logo_parqrin.png',
+              width: 130,
+              height: 130,
+            ),
+            const SizedBox(height: 20),
+
+            // === KOTAK LOGIN ===
+            Container(
+              width: 400,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
               ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: _usernameController,
-                decoration: const InputDecoration(labelText: "Username"),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _passwordController,
-                obscureText: true,
-                decoration: const InputDecoration(labelText: "Password"),
-                onSubmitted: (_) => _login(),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _login,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    "Admin Masuk",
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text("LOGIN"),
-                ),
+                  const SizedBox(height: 20),
+
+                  TextField(
+                    controller: _usernameController,
+                    decoration: const InputDecoration(labelText: "Nama Admin"),
+                  ),
+                  const SizedBox(height: 12),
+
+                  TextField(
+                    controller: _passwordController,
+                    obscureText: true,
+                    decoration: const InputDecoration(labelText: "Kata Sandi"),
+                    onSubmitted: (_) => _login(),
+                  ),
+                  const SizedBox(height: 20),
+
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _isLoading ? null : _login,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      child: _isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text("MASUK"),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

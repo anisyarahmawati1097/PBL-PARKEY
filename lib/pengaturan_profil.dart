@@ -43,15 +43,10 @@ class _PengaturanProfilPageState extends State<PengaturanProfilPage> {
     _loadProfileData();
   }
 
-  // =============================
-  // LOAD PROFILE DARI LOGIN
-  // =============================
   Future<void> _loadProfileData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-
     final userJson = prefs.getString("user");
     if (userJson == null) return;
-
     final user = jsonDecode(userJson);
 
     setState(() {
@@ -63,12 +58,8 @@ class _PengaturanProfilPageState extends State<PengaturanProfilPage> {
     });
   }
 
-  // =============================
-  // UPDATE PROFIL
-  // =============================
   Future<void> _saveProfile() async {
     setState(() => _loading = true);
-
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString("token");
 
@@ -82,7 +73,7 @@ class _PengaturanProfilPageState extends State<PengaturanProfilPage> {
 
     try {
       final response = await http.post(
-        Uri.parse("http://192.168.14.134:8000/api/update-profile"),
+        Uri.parse("http://192.168.217.134:8000/api/update-profile"),
         headers: {
           "Authorization": "Bearer $token",
           "Accept": "application/json",
@@ -125,16 +116,13 @@ class _PengaturanProfilPageState extends State<PengaturanProfilPage> {
     }
   }
 
-  // =============================
-  // LOGOUT
-  // =============================
   Future<void> _logout() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString("token");
 
     try {
       await http.post(
-        Uri.parse("http://192.168.14.134:8000/api/logout"),
+        Uri.parse("http://192.168.217.134:8000/api/logout"),
         headers: {
           "Authorization": "Bearer $token",
           "Accept": "application/json",
@@ -148,16 +136,26 @@ class _PengaturanProfilPageState extends State<PengaturanProfilPage> {
 
   Widget _buildTextField(String label, TextEditingController controller,
       {TextInputType? keyboardType}) {
-    return TextField(
-      controller: controller,
-      keyboardType: keyboardType,
-      decoration: InputDecoration(
-        labelText: label,
-        filled: true,
-        fillColor: Colors.grey[200],
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(6),
-          borderSide: BorderSide.none,
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x12000000),
+            blurRadius: 6,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: controller,
+        keyboardType: keyboardType,
+        decoration: InputDecoration(
+          labelText: label,
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
       ),
     );
@@ -175,67 +173,76 @@ class _PengaturanProfilPageState extends State<PengaturanProfilPage> {
       appBar: AppBar(
         title: const Text("Pengaturan Profil"),
         backgroundColor: const Color(0xFF6A994E),
+        centerTitle: true,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
-            // =============================
-            // BAGIAN PALING ATAS (DISIMPILKAN NAMA + EMAIL SAJA)
-            // =============================
-            ListTile(
-              leading: const CircleAvatar(
-                radius: 28,
-                backgroundColor: Colors.grey,
-                child: Icon(Icons.person, size: 36, color: Colors.white),
-              ),
-              title: Text(
-                displayedName,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(_emailController.text.isNotEmpty
-                      ? _emailController.text
-                      : "-"),
-                ],
+            const SizedBox(height: 20),
+            // Avatar Profil
+            Center(
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFF6A994E), width: 3),
+                ),
+                child: const CircleAvatar(
+                  radius: 50,
+                  backgroundColor: Colors.grey,
+                  child: Icon(Icons.person, size: 60, color: Colors.white),
+                ),
               ),
             ),
-
             const SizedBox(height: 12),
-            _buildTextField("Nama Lengkap", _fullNameController),
-            const SizedBox(height: 12),
-            _buildTextField("Tanggal Lahir", _tanggalLahirController),
-            const SizedBox(height: 12),
-            _buildTextField("Nomor Telepon", _phoneController,
-                keyboardType: TextInputType.phone),
-            const SizedBox(height: 12),
-            _buildTextField("Email", _emailController,
-                keyboardType: TextInputType.emailAddress),
-            const SizedBox(height: 12),
-            _buildTextField("Nama Pengguna", _usernameController),
+            // Nama
+            Center(
+              child: Text(
+                displayedName,
+                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              ),
+            ),
+            const SizedBox(height: 4),
+            // Email
+            Center(
+              child: Text(
+                _emailController.text.isNotEmpty ? _emailController.text : "-",
+                style: const TextStyle(fontSize: 16, color: Colors.black54),
+              ),
+            ),
             const SizedBox(height: 20),
 
+            // Form Fields
+            _buildTextField("Nama Lengkap", _fullNameController),
+            _buildTextField("Tanggal Lahir", _tanggalLahirController),
+            _buildTextField("Nomor Telepon", _phoneController, keyboardType: TextInputType.phone),
+            _buildTextField("Email", _emailController, keyboardType: TextInputType.emailAddress),
+            _buildTextField("Nama Pengguna", _usernameController),
+            const SizedBox(height: 24),
+
+            // Tombol Simpan
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF6A994E),
-                minimumSize: const Size(double.infinity, 48),
+                minimumSize: const Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               onPressed: _loading ? null : _saveProfile,
               child: _loading
-                  ? const CircularProgressIndicator()
-                  : const Text("SIMPAN"),
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : const Text("SIMPAN", style: TextStyle(fontSize: 18)),
             ),
             const SizedBox(height: 12),
-
+            // Tombol Keluar
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFF7272),
-                minimumSize: const Size(double.infinity, 48),
+                minimumSize: const Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               onPressed: _logout,
-              child: const Text("KELUAR"), 
+              child: const Text("KELUAR", style: TextStyle(fontSize: 18)),
             ),
           ],
         ),

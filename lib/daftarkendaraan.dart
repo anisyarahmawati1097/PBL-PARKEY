@@ -32,7 +32,7 @@ class _DaftarKendaraanPageState extends State<DaftarKendaraanPage> {
     }
 
     final response = await http.get(
-      Uri.parse("http://192.168.14.134:8000/api/kendaraan?user_id=$userId")
+      Uri.parse("http://192.168.217.134:8000/api/kendaraan?user_id=$userId")
     );
 
     if (response.statusCode == 200) {
@@ -81,11 +81,20 @@ class _DaftarKendaraanPageState extends State<DaftarKendaraanPage> {
                       child: ListTile(
                         leading: const Icon(Icons.directions_car, size: 40),
                         title: Text(
-                          (item["plat_nomor"] ?? "").toUpperCase(),
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 18),
-                        ),
-                        subtitle: Text(item["jenis"] ?? "Kendaraan"),
+  (item["plat_nomor"] ?? "").toUpperCase(),
+  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+),
+subtitle: Column(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    Text("Jenis: ${item["jenis"] ?? "-"}"),
+    Text("Merk: ${item["merk"] ?? "-"}"),
+    Text("Model: ${item["model"] ?? "-"}"),
+    Text("Warna: ${item["warna"] ?? "-"}"),
+    Text("Tahun: ${item["tahun"] ?? "-"}"),
+  ],
+),
+                       
                         trailing: const Icon(Icons.chevron_right, size: 32),
                         onTap: () {
                           Navigator.push(

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+
 import 'lupasandi.dart';
 import 'daftar.dart';
 
@@ -29,7 +30,7 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     try {
-      final url = Uri.parse("http://192.168.14.134:8000/api/masuk");
+      final url = Uri.parse("http://192.168.217.134:8000/api/masuk");
 
       final response = await http.post(
         url,
@@ -43,7 +44,6 @@ class _LoginPageState extends State<LoginPage> {
         }),
       );
 
-      // --- Pastikan response adalah JSON ---
       dynamic data;
       try {
         data = jsonDecode(response.body);
@@ -52,7 +52,6 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
 
-      // --- Status 200 → Login Berhasil ---
       if (response.statusCode == 200) {
         _showMessage("Berhasil Masuk!");
 
@@ -61,13 +60,11 @@ class _LoginPageState extends State<LoginPage> {
         await prefs.setString("user", jsonEncode(data["user"]));
         await prefs.setString("user_id", data["user"]["id"].toString());
 
-
         if (!mounted) return;
         Navigator.pushReplacementNamed(context, '/main');
         return;
       }
 
-      // --- Jika gagal → kirim pesan error dari Laravel ---
       _handleError(data);
     } catch (e) {
       _showMessage("Tidak dapat terhubung ke server.");
@@ -80,13 +77,11 @@ class _LoginPageState extends State<LoginPage> {
   void _handleError(dynamic data) {
     String message = "";
 
-    // error dari Validator Laravel
     if (data is Map && data.containsKey("errors")) {
       final errors = data["errors"] as Map;
       message = (errors.values.first as List).first.toString();
     }
 
-    // error manual { message : "...." }
     if (message.isEmpty && data is Map && data.containsKey("message")) {
       message = data["message"];
     }
@@ -118,110 +113,133 @@ class _LoginPageState extends State<LoginPage> {
       backgroundColor: const Color(0xFF6A994E),
       body: Center(
         child: SingleChildScrollView(
-          child: Container(
-            width: 350,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: const Color(0xFF386641),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Center(
-                  child: Text(
-                    "Masuk",
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
+          child: Column(
+            children: [
+              // LOGO DI ATAS KOTAK
+              Padding(
+                padding: const EdgeInsets.only(bottom: 20),
+                child: Image.asset(
+                  'assets/logo_parqrin.png',
+                  width: 120,
+                  height: 120,
                 ),
+              ),
 
-                const SizedBox(height: 25),
-
-                const Text("Email", style: TextStyle(color: Colors.white)),
-                const SizedBox(height: 5),
-                TextField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(
-                    hintText: "Masukkan email",
-                    filled: true,
-                    fillColor: Colors.white,
-                  ),
+              // KOTAK LOGIN
+              Container(
+                width: 350,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF386641),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-
-                const SizedBox(height: 20),
-
-                const Text("Kata sandi", style: TextStyle(color: Colors.white)),
-                const SizedBox(height: 5),
-                TextField(
-                  controller: _passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    hintText: "Masukkan kata sandi",
-                    filled: true,
-                    fillColor: Colors.white,
-                  ),
-                ),
-
-                const SizedBox(height: 10),
-
-                Align(
-  alignment: Alignment.centerRight,
-  child: TextButton(
-    onPressed: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => LupaPasswordPage()),
-      );
-    },
-    child: const Text(
-      "Lupa kata sandi?",
-      style: TextStyle(color: Colors.white),
-    ),
-  ),
-),
-                const SizedBox(height: 10),
-
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _login,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFC3E956),
-                      foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                    ),
-                    child: const Text(
-                      "MASUK",
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 20),
-
-                Center(
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const DaftarPage()),
-                      );
-                    },
-                    child: const Text(
-                      "Belum punya akun? Daftar Sekarang",
-                      style: TextStyle(
-                        color: Colors.white,
-                        decoration: TextDecoration.underline,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Center(
+                      child: Text(
+                        "Masuk",
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
-                  ),
-                )
-              ],
-            ),
+
+                    const SizedBox(height: 25),
+
+                    const Text("Email",
+                        style: TextStyle(color: Colors.white)),
+                    const SizedBox(height: 5),
+
+                    TextField(
+                      controller: _emailController,
+                      decoration: const InputDecoration(
+                        hintText: "Masukkan email",
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    const Text("Kata sandi",
+                        style: TextStyle(color: Colors.white)),
+                    const SizedBox(height: 5),
+
+                    TextField(
+                      controller: _passwordController,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        hintText: "Masukkan kata sandi",
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => LupaPasswordPage()),
+                          );
+                        },
+                        child: const Text(
+                          "Lupa kata sandi?",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _login,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFC3E956),
+                          foregroundColor: Colors.black,
+                          padding:
+                              const EdgeInsets.symmetric(vertical: 15),
+                        ),
+                        child: const Text(
+                          "MASUK",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    Center(
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const DaftarPage()),
+                          );
+                        },
+                        child: const Text(
+                          "Belum punya akun? Daftar Sekarang",
+                          style: TextStyle(
+                            color: Colors.white,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),

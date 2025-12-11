@@ -8,8 +8,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'daftarkendaraan.dart';
 
-
-
 class BerandaPage extends StatefulWidget {
   final String? username;
   final String? email;
@@ -26,193 +24,182 @@ class _BerandaPageState extends State<BerandaPage> {
   @override
   void initState() {
     super.initState();
-    fetchKendaraanTerbaru(); // panggil saat halaman dibuka
+    fetchKendaraanTerbaru();
   }
 
-  // Fungsi fetchKendaraanTerbaru taruh di sini
   Future<void> fetchKendaraanTerbaru() async {
-  final response = await http.get(Uri.parse("http://192.168.14.134:8000/api/kendaraan"));
-  
-  if (response.statusCode == 200) {
-    final data = jsonDecode(response.body)['data'];
+    final response =
+        await http.get(Uri.parse("http://192.168.217.134:8000/api/kendaraan"));
 
-    if (data != null && data.isNotEmpty) {
-      setState(() {
-        kendaraanTerbaru = data.last; // Ambil kendaraan terakhir
-      });
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body)['data'];
+      if (data != null && data.isNotEmpty) {
+        setState(() {
+          kendaraanTerbaru = data.last;
+        });
+      }
+    } else {
+      print("Gagal mengambil data kendaraan: ${response.statusCode}");
     }
-  } else {
-    print("Gagal mengambil data kendaraan: ${response.statusCode}");
   }
-}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF6A994E),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF6A994E),
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        title: Row(
+      backgroundColor: const Color(0xFF6A994E), // solid background
+      body: SafeArea(
+        child: Column(
           children: [
-            Image.asset(
-              'assets/logo_parqrin.png',
-              height: 32,
-              width: 32,
-            ),
-            const SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Halo, ${widget.username ?? 'User'}",
-                  style: const TextStyle(
-                    color: Color.fromARGB(255, 0, 0, 0),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  "Mau kemana hari ini?",
-                  style: TextStyle(
-                    color: Color.fromARGB(179, 0, 0, 0),
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-      body: _buildBerandaContent(),
-    );
-  }
-
-  Widget _buildBerandaContent() {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            decoration: BoxDecoration(
-              color: const Color(0xFFE0FFC2),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const TextField(
-              decoration: InputDecoration(
-                icon: Icon(Icons.search, color: Colors.black54),
-                hintText: "Cari Tempat Parkir",
-                border: InputBorder.none,
-              ),
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 12),
-
-        Expanded(
-          child: Container(
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(24),
-                topRight: Radius.circular(24),
-              ),
-            ),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(16, 20, 16, 80),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            // Header solid color
+            Container(
+              color: const Color(0xFF6A994E), // solid hijau
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 25),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => LokasiPage(),
-                            ),
-                          );
-                        },
-                        child: Column(
-                          children: const [
-                            Icon(Icons.location_on, size: 40, color: Colors.black87),
-                            SizedBox(height: 6),
-                            Text(
-                              "Lokasi",
-                              style: TextStyle(fontWeight: FontWeight.w600),
-                            ),
-                          ],
+                  Image.asset(
+                    'assets/logo_parqrin.png',
+                    height: 70,
+                    width: 70,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Halo, ${widget.username ?? 'User'} 👋",
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 24,
+                          ),
                         ),
-                      ),
-                     
-                      GestureDetector(
-  onTap: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => DaftarKendaraanPage(),
-      ),
-    );
-  },
-
-  child: Column(
-    children: const [
-      Icon(Icons.qr_code, size: 40, color: Colors.black87),
-      SizedBox(height: 6),
-      Text(
-        "QR",
-        style: TextStyle(fontWeight: FontWeight.w600),
-      ),
-    ],
-  ),
-),
-
-                    ],
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  const Text(
-                    "Tempat parkir terakhir dikunjungi",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                        const SizedBox(height: 4),
+                        const Text(
+                          "Mau kemana hari ini?",
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 18,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  _buildParkirCard(
-                    "Grand Batam Mall",
-                    "Jl. Pembangunan, Batu Selicin, Kec. Lubuk Baja, Kota Batam",
-                    "assets/gm.jpeg",
-                  ),
-
-                  _buildParkirCard(
-                    "SNL Food Tanjung Uma",
-                    "Jodoh, kawasan baru phrayangan, Jl. Tj Uma, Kota Batam",
-                    "assets/snl.jpg",
                   ),
                 ],
               ),
             ),
-          ),
+
+            // Container putih bawah
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                decoration: const BoxDecoration(
+                  color: Colors.white, // solid putih
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(24),
+                    topRight: Radius.circular(24),
+                  ),
+                ),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 80),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Tombol Lokasi & QR
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _iconButton(
+                            icon: Icons.location_on,
+                            label: "Lokasi",
+                            color: Colors.green,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => LokasiPage()),
+                              );
+                            },
+                          ),
+                          _iconButton(
+                            icon: Icons.qr_code,
+                            label: "QR",
+                            color: Colors.orange,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => DaftarKendaraanPage()),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 25),
+
+                      // Judul daftar parkir
+                      const Text(
+                        "Tempat parkir terakhir dikunjungi",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // List parkir
+                      _buildParkirCard(
+                        "Grand Batam Mall",
+                        "Jl. Pembangunan, Batu Selicin, Kec. Lubuk Baja, Kota Batam",
+                        "assets/gm.jpeg",
+                      ),
+                      _buildParkirCard(
+                        "SNL Food Tanjung Uma",
+                        "Jodoh, kawasan baru phrayangan, Jl. Tj Uma, Kota Batam",
+                        "assets/snl.jpg",
+                      ),
+                      const SizedBox(height: 20),
+                  
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
-      ],
+      ),
+      
     );
   }
 
-  Widget _buildParkirCard(
-    String title,
-    String subtitle,
-    String imagePath,
-  ) {
+  Widget _iconButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 36, color: color),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            label,
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildParkirCard(String title, String subtitle, String imagePath) {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
@@ -220,9 +207,9 @@ class _BerandaPageState extends State<BerandaPage> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x12000000),
-            blurRadius: 6,
-            offset: Offset(0, 3),
+            color: Color(0x11000000), // shadow sangat ringan, bukan gradasi
+            blurRadius: 4,
+            offset: Offset(0, 2),
           ),
         ],
       ),
@@ -257,9 +244,7 @@ class _BerandaPageState extends State<BerandaPage> {
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.black87),
+                    style: const TextStyle(fontSize: 12, color: Colors.black87),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/admin/login_admin.dart';
-import 'dashboard_admin.dart'; // pastikan impor file yg benar
+import 'dashboard_admin.dart';
 
 void main() {
   runApp(const MyApp());
@@ -15,11 +15,10 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Admin Dashboard',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: LoginAdminPage(), // ✅ tanpa const
       initialRoute: '/login',
       routes: {
         '/login': (context) => const LoginAdminPage(),
-        '/dashboard' : (context) => const DashboardAdmin()
+        '/dashboard': (context) => const DashboardAdmin(),
       },
     );
   }

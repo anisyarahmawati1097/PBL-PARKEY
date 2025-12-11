@@ -27,34 +27,61 @@ class _AkunPageState extends State<AkunPage> {
     email = widget.email;
   }
 
+  Widget _buildMenuCard({required IconData icon, required String title, required VoidCallback onTap}) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 2,
+      child: ListTile(
+        leading: Icon(icon, color: const Color(0xFF6A994E)),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+        onTap: onTap,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: const Text("Akun"),
+        centerTitle: true,
         backgroundColor: const Color(0xFF6A994E),
       ),
       body: ListView(
         children: [
-          ListTile(
-            leading: const CircleAvatar(
-              backgroundColor: Colors.green,
-              child: Icon(Icons.person, color: Colors.white),
-            ),
-            title: Text(username),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(email),
-              ],
+          const SizedBox(height: 20),
+          // Foto profil
+          Center(
+            child: CircleAvatar(
+              radius: 50,
+              backgroundColor: Colors.grey[300],
+              child: const Icon(Icons.person, size: 60, color: Colors.white),
             ),
           ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.directions_car, color: Colors.green),
-            title: const Text("Tambah Kendaraan"),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+          const SizedBox(height: 12),
+          // Nama
+          Center(
+            child: Text(
+              username,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+          ),
+          const SizedBox(height: 4),
+          // Email
+          Center(
+            child: Text(
+              email,
+              style: const TextStyle(fontSize: 16, color: Colors.black54),
+            ),
+          ),
+          const SizedBox(height: 20),
+          // Menu Card
+          _buildMenuCard(
+            icon: Icons.directions_car,
+            title: "Tambah Kendaraan",
             onTap: () {
               Navigator.push(
                 context,
@@ -62,10 +89,9 @@ class _AkunPageState extends State<AkunPage> {
               );
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.settings, color: Colors.green),
-            title: const Text("Pengaturan Profil"),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+          _buildMenuCard(
+            icon: Icons.settings,
+            title: "Pengaturan Profil",
             onTap: () async {
               final result = await Navigator.push(
                 context,
@@ -77,7 +103,6 @@ class _AkunPageState extends State<AkunPage> {
                 ),
               );
 
-              // Jika result tidak null, update data akun
               if (result != null && result is Map<String, String>) {
                 setState(() {
                   username = result['username'] ?? username;

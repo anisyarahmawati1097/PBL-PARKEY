@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+// Pages
 import 'beranda.dart';
 import 'aktivitas.dart';
 import 'riwayat.dart';
 import 'akun.dart';
+import 'bayar.dart';
 
 class MainScreen extends StatefulWidget {
   final String? username;
@@ -25,7 +28,7 @@ class _MainScreenState extends State<MainScreen> {
   String? username;
   String? email;
 
-  final List<Widget> _pages = [];
+  List<Widget> _pages = [];
 
   @override
   void initState() {
@@ -39,32 +42,30 @@ class _MainScreenState extends State<MainScreen> {
 
     if (!mounted) return;
 
+    if (userJson != null) {
+      final user = jsonDecode(userJson);
+      username = user['name'];
+      email = user['email'];
+    } else {
+      username = widget.username ?? "Pengguna";
+      email = widget.email ?? "email@example.com";
+    }
+
+    // Set semua halaman setelah username/email diperoleh
     setState(() {
-      if (userJson != null) {
-        final user = jsonDecode(userJson);
-        username = user['name'];
-        email = user['email'];
-      } else {
-        username = widget.username ?? "Pengguna";
-        email = widget.email ?? "email@example.com";
-      }
-
-      _pages
-        ..clear()
-        ..addAll([
-          BerandaPage(username: username, email: email),
-          const AktivitasPage(),
-          const Center(child: Text("Fitur Bayar & Metrans Coming Soon")),
-          RiwayatPage(riwayat: []), // riwayat sementara kosong
-          AkunPage(
-            username: username ?? "",
-            email: email ?? "",
-          ),
-        ]);
-
-      if (_selectedIndex >= _pages.length) {
-        _selectedIndex = 0;
-      }
+      _pages = [
+        BerandaPage(username: username, email: email),
+        const AktivitasPage(),
+        BayarPage(
+          parkirId: 1,   // dummy dulu
+          nominal: 5000,
+        ),
+        const RiwayatPage(),
+        AkunPage(
+          username: username ?? "",
+          email: email ?? "",
+        ),
+      ];
     });
   }
 
@@ -76,17 +77,19 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFE0FFC2),
+      backgroundColor: const Color(0xFFF4F6F4),
+
       body: _pages.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : IndexedStack(
               index: _selectedIndex,
               children: _pages,
             ),
+
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: const Color(0xFF6A994E),
-        selectedItemColor: const Color.fromARGB(255, 8, 9, 6),
-        unselectedItemColor: const Color.fromARGB(255, 0, 0, 0),
+        selectedItemColor: Colors.white,
+        unselectedItemColor: const Color.fromARGB(255, 230, 230, 230),
         currentIndex: _selectedIndex,
         type: BottomNavigationBarType.fixed,
         onTap: _onItemTapped,
@@ -94,7 +97,7 @@ class _MainScreenState extends State<MainScreen> {
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Beranda"),
           BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: "Aktivitas"),
           BottomNavigationBarItem(icon: Icon(Icons.qr_code_scanner), label: "Bayar"),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: "Riwayat"), // <-- ganti ikon & label
+          BottomNavigationBarItem(icon: Icon(Icons.history), label: "Riwayat"),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Akun"),
         ],
       ),

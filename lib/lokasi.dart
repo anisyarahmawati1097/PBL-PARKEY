@@ -43,10 +43,14 @@ class LokasiPage extends StatelessWidget {
               "assets/gm.jpeg",
               deskripsi:
                   "Operated by Centrepark. Lokasi strategis di pusat kota Batam dengan akses mudah ke area perbelanjaan.",
-              tarifMobil:
-                  "2 Jam Pertama IDR 5000\nJam Berikutnya IDR 2000/Jam",
               tarifMotor:
                   "2 Jam Pertama IDR 2000\nJam Berikutnya IDR 1000/Jam",
+              tarifMobil:
+                  "2 Jam Pertama IDR 4000\nJam Berikutnya IDR 2000/Jam",
+              tarifPickup:
+                  "2 Jam Pertama IDR 6000\nJam Berikutnya IDR 3000/Jam",
+              tarifTruk:
+                  "2 Jam Pertama IDR 8000\nJam Berikutnya IDR 4000/Jam",
             ),
 
             const SizedBox(height: 12),
@@ -59,10 +63,14 @@ class LokasiPage extends StatelessWidget {
               "assets/snl.jpg",
               deskripsi:
                   "Tempat parkir dekat pusat kuliner Tanjung Uma, ramai setiap malam dan aman untuk motor maupun mobil.",
-              tarifMobil:
-                  "1 Jam Pertama IDR 4000\nJam Berikutnya IDR 2000/Jam",
               tarifMotor:
-                  "1 Jam Pertama IDR 1500\nJam Berikutnya IDR 1000/Jam",
+                  "1 Jam Pertama IDR 1000\nJam Berikutnya IDR 1000/Jam",
+              tarifMobil:
+                  "1 Jam Pertama IDR 3000\nJam Berikutnya IDR 2000/Jam",
+              tarifPickup:
+                  "1 Jam Pertama IDR 5000\nJam Berikutnya IDR 3000/Jam",
+              tarifTruk:
+                  "1 Jam Pertama IDR 7000\nJam Berikutnya IDR 4000/Jam",
             ),
           ],
         ),
@@ -79,6 +87,8 @@ class LokasiPage extends StatelessWidget {
     required String deskripsi,
     required String tarifMobil,
     required String tarifMotor,
+    required String tarifPickup,
+    required String tarifTruk,
   }) {
     return GestureDetector(
       onTap: () {
@@ -92,6 +102,8 @@ class LokasiPage extends StatelessWidget {
               deskripsi: deskripsi,
               tarifMobil: tarifMobil,
               tarifMotor: tarifMotor,
+              tarifPickup: tarifPickup,
+              tarifTruk: tarifTruk,
             ),
           ),
         );

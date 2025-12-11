@@ -5,8 +5,10 @@ class ItpPage extends StatelessWidget {
   final String alamat;
   final String gambar;
   final String deskripsi;
-  final String tarifMobil;
   final String tarifMotor;
+  final String tarifMobil;
+  final String tarifPickup;
+  final String tarifTruk; 
 
   const ItpPage({
     super.key,
@@ -14,8 +16,10 @@ class ItpPage extends StatelessWidget {
     required this.alamat,
     required this.gambar,
     required this.deskripsi,
-    required this.tarifMobil,
     required this.tarifMotor,
+    required this.tarifMobil,
+    required this.tarifPickup,
+    required this.tarifTruk,
   });
 
   @override
@@ -127,6 +131,17 @@ class ItpPage extends StatelessWidget {
             const SizedBox(height: 10),
 
             const Text(
+              "Tarif Motor",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            Text(
+              tarifMotor,
+              style: const TextStyle(fontSize: 13),
+            ),
+
+            const SizedBox(height: 12),
+
+            const Text(
               "Tarif Mobil",
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
@@ -138,12 +153,23 @@ class ItpPage extends StatelessWidget {
             const SizedBox(height: 12),
 
             const Text(
-              "Tarif Motor",
+              "Tarif Pickup",
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             Text(
-              tarifMotor,
+              tarifPickup,
               style: const TextStyle(fontSize: 13),
+            ),
+
+            const SizedBox(height: 12),
+
+            const Text(
+              "Tarif Truk",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            Text(
+              tarifTruk,
+              style: const TextStyle(fontSize: 13), 
             ),
           ],
         ),

@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'riwayat.dart'; // <- import halaman RiwayatPage
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AktivitasPage extends StatefulWidget {
   const AktivitasPage({super.key});
@@ -10,25 +12,16 @@ class AktivitasPage extends StatefulWidget {
 }
 
 class _AktivitasPageState extends State<AktivitasPage> {
-  List<Map<String, dynamic>> aktivitasBerlangsung = [
-    {
-      "lokasi": "Grand Batam Mall",
-      "merek": "Honda Vario 125",
-      "plat": "BP 1234 AB",
-      "jamMasuk": DateTime.now().subtract(const Duration(minutes: 42)),
-      "tarifFirstHour": 3000,
-      "tarifNextHour": 2000,
-    },
-  ];
-
-  List<Map<String, dynamic>> riwayat = [];
+  List<Map<String, dynamic>> aktivitas = [];
   Timer? timer;
 
   @override
   void initState() {
     super.initState();
-    timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) setState(() {});
+    fetchAktivitas();
+
+    timer = Timer.periodic(const Duration(seconds: 5), (_) {
+      fetchAktivitas();
     });
   }
 
@@ -38,155 +31,179 @@ class _AktivitasPageState extends State<AktivitasPage> {
     super.dispose();
   }
 
-  String formatDuration(Duration d) {
-    String h = d.inHours.toString().padLeft(2, '0');
-    String m = (d.inMinutes % 60).toString().padLeft(2, '0');
-    String s = (d.inSeconds % 60).toString().padLeft(2, '0');
-    return "$h:$m:$s";
+  Future<void> fetchAktivitas() async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString("token") ?? "";
+
+  if (token.isEmpty) return;
+
+  final url = Uri.parse("http://192.168.217.134:8000/api/aktivitas-pengendara");
+
+  try {
+    final res = await http.get(
+      url,
+      headers: {
+        "Authorization": "Bearer $token",
+        "Accept": "application/json",
+      },
+    );
+
+    if (res.statusCode == 200) {
+      final body = jsonDecode(res.body);
+
+      if (body["status"] == "success") {
+        final List<dynamic> listKendaraan = body["data"] ?? [];
+
+        List<Map<String, dynamic>> temp = [];
+
+        // LOOP SEMUA KENDARAAN
+        for (var k in listKendaraan) {
+          final parkirs = k["parkirs"] ?? [];
+
+          // LOOP SEMUA PARKIR YANG SEDANG AKTIF
+          for (var p in parkirs) {
+            if (p["masuk"] != null && p["keluar"] == null) {
+              temp.add({
+                "lokasi": p["id_lokasi"],
+                "merek": k["merk"],
+                "plat": k["plat_nomor"],
+                "masuk": DateTime.parse(p["masuk"]),
+                "keluar": null,
+              });
+            }
+          }
+        }
+
+        setState(() {
+          aktivitas = temp;
+        });
+      }
+    }
+  } catch (e) {
+    print("Error aktivitas: $e");
+  }
+}
+
+  String formatDate(DateTime dt) {
+    return "${dt.day.toString().padLeft(2, '0')}-"
+        "${dt.month.toString().padLeft(2, '0')}-"
+        "${dt.year} ${dt.hour.toString().padLeft(2, '0')}:"
+        "${dt.minute.toString().padLeft(2, '0')}";
   }
 
-  String formatJam(DateTime dt) {
-    return "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')} WIB";
-  }
-
-  int hitungBiaya(Duration durasi, int tarifFirst, int tarifNext) {
-    final hours = (durasi.inMinutes / 60).ceil();
-    return (hours <= 1) ? tarifFirst : tarifFirst + ((hours - 1) * tarifNext);
-  }
-
-  void akhiriParkir(int index) {
-    final data = aktivitasBerlangsung[index];
-    final jamMasuk = data["jamMasuk"];
-    final durasi = DateTime.now().difference(jamMasuk);
-    final biaya = hitungBiaya(
-        durasi, data["tarifFirstHour"], data["tarifNextHour"]);
-
-    setState(() {
-      aktivitasBerlangsung.removeAt(index);
-      riwayat.add({
-        "lokasi": data["lokasi"],
-        "merek": data["merek"],
-        "plat": data["plat"],
-        "jamMasuk": formatJam(jamMasuk),
-        "jamKeluar": formatJam(DateTime.now()),
-        "durasi": formatDuration(durasi),
-        "total": biaya,
-      });
-    });
+  String _formatDurasi(Duration d) {
+    return "${d.inHours} jam ${d.inMinutes % 60} menit";
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFE0FFC2),
+      backgroundColor: const Color(0xFFF4F6F4),
       appBar: AppBar(
         backgroundColor: const Color(0xFF6A994E),
-        title: const Text("Aktivitas", style: TextStyle(color: Color.fromARGB(255, 0, 0, 0))),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.history),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => RiwayatPage(riwayat: riwayat),
-                ),
-              );
-            },
-          )
-        ],
+        title: const Text("Aktivitas Parkir", style: TextStyle(color: Colors.white)),
+        centerTitle: true,
+        elevation: 2,
       ),
-      body: aktivitasBerlangsung.isEmpty
+
+      body: aktivitas.isEmpty
           ? const Center(
               child: Text("Belum ada aktivitas parkir", style: TextStyle(fontSize: 16)),
             )
           : ListView.builder(
               padding: const EdgeInsets.all(16),
-              itemCount: aktivitasBerlangsung.length,
+              itemCount: aktivitas.length,
               itemBuilder: (context, index) {
-                final data = aktivitasBerlangsung[index];
-                final jamMasuk = data["jamMasuk"];
-                final durasi = DateTime.now().difference(jamMasuk);
-                final biaya = hitungBiaya(
-                    durasi, data["tarifFirstHour"], data["tarifNextHour"]);
+                final data = aktivitas[index];
 
-                return AktifCard(
-                  lokasi: data["lokasi"],
-                  merek: data["merek"],
-                  plat: data["plat"],
-                  jamMasuk: jamMasuk,
-                  durasi: formatDuration(durasi),
-                  biaya: biaya,
-                  onAkhiri: () => akhiriParkir(index),
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.06),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.local_parking, color: Color(0xFF386641)),
+                          const SizedBox(width: 8),
+                          Text(
+                            data["lokasi"].toString(),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Color(0xFF386641),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      Text(
+                        "${data['merek']} - ${data['plat']}",
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+
+                      const Divider(height: 24),
+
+                      _infoRow(
+                        icon: Icons.login,
+                        color: Colors.orange,
+                        label: "Masuk",
+                        value: formatDate(data["masuk"]),
+                      ),
+
+                      data["keluar"] == null
+                          ? _infoRow(
+                              icon: Icons.access_time_filled,
+                              color: Colors.green,
+                              label: "Status",
+                              value: "Sedang Parkir",
+                            )
+                          : _infoRow(
+                              icon: Icons.logout,
+                              color: Colors.red,
+                              label: "Keluar",
+                              value: formatDate(data["keluar"]),
+                            ),
+
+                    ],
+                  ),
                 );
               },
             ),
     );
   }
-}
 
-class AktifCard extends StatelessWidget {
-  final String lokasi;
-  final String merek;
-  final String plat;
-  final DateTime jamMasuk;
-  final String durasi;
-  final int biaya;
-  final VoidCallback onAkhiri;
-
-  const AktifCard({
-    super.key,
-    required this.lokasi,
-    required this.merek,
-    required this.plat,
-    required this.jamMasuk,
-    required this.durasi,
-    required this.biaya,
-    required this.onAkhiri,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      color: const Color(0xFFF8F4FF),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      elevation: 0,
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text("Aktivitas Sedang Berlangsung", style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                const Icon(Icons.location_on, color: Colors.green),
-                const SizedBox(width: 8),
-                Expanded(child: Text(lokasi, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600))),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text("$merek - $plat", style: const TextStyle(fontSize: 14)),
-            const SizedBox(height: 6),
-            Text("Masuk: ${jamMasuk.hour.toString().padLeft(2,'0')}:${jamMasuk.minute.toString().padLeft(2,'0')} WIB"),
-            Text("Durasi: $durasi"),
-            Text("Biaya: Rp $biaya", style: const TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 18),
-            Center(
-              child: ElevatedButton.icon(
-                onPressed: onAkhiri,
-                icon: const Icon(Icons.exit_to_app),
-                label: const Text("Akhiri Parkir"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6A994E),
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
-                ),
-              ),
-            ),
-          ],
-        ),
+  Widget _infoRow({
+    required IconData icon,
+    required Color color,
+    required String label,
+    required String value,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 22),
+          const SizedBox(width: 10),
+          Text("$label: $value", style: const TextStyle(fontSize: 14)),
+        ],
       ),
     );
   }

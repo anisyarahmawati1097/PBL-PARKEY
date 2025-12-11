@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
+// ========================
 // PAGES
+// ========================
 import 'pengendara_page.dart';
 import 'laporan_page.dart';
-import 'lokasi_page.dart';
+import 'monitoring_parkir.dart';
 
+// ========================
 // WIDGETS
+// ========================
 import 'widgets/sidebar.dart';
 import 'widgets/header.dart';
 
@@ -25,18 +30,46 @@ class _DashboardAdminState extends State<DashboardAdmin> {
   int lokasiCount = 0;
   int laporanCount = 0;
 
+  int? lokasiId;
+  String namaLokasi = "";
+
   bool loading = true;
+  bool loadingAdmin = true;
 
   @override
   void initState() {
     super.initState();
-    fetchStats();
+    loadAdminLocation();
   }
 
+  // ========================
+  // LOAD DATA ADMIN
+  // ========================
+  Future<void> loadAdminLocation() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    lokasiId = prefs.getInt("lokasi_id");
+    namaLokasi = prefs.getString("nama_lokasi") ?? "";
+
+    setState(() => loadingAdmin = false);
+
+    if (lokasiId != null) {
+      fetchStats();         // fetch pengendara & lokasi
+      fetchLaporanCount();  // fetch jumlah laporan langsung
+    }
+  }
+
+  // ========================
+  // FETCH STATS (PENGENDARA & LOKASI)
+  // ========================
   Future fetchStats() async {
+    if (lokasiId == null) return;
+
     try {
       final res = await http.get(
-        Uri.parse("http://192.168.14.134:8000/api/dashboard/stats"),
+        Uri.parse(
+          "http://192.168.217.134:8000/api/dashboard/stats?lokasi_id=$lokasiId",
+        ),
       );
 
       if (res.statusCode == 200) {
@@ -45,7 +78,6 @@ class _DashboardAdminState extends State<DashboardAdmin> {
         setState(() {
           pengendaraCount = json['pengendara'];
           lokasiCount = json['lokasi'];
-          laporanCount = json['laporan'];
           loading = false;
         });
       } else {
@@ -57,19 +89,62 @@ class _DashboardAdminState extends State<DashboardAdmin> {
     }
   }
 
+  // ========================
+  // FETCH JUMLAH LAPORAN LANGSUNG
+  // ========================
+  Future<void> fetchLaporanCount() async {
+    if (lokasiId == null) return;
+
+    try {
+      final url =
+          'http://192.168.217.134:8000/api/laporan/harian-lokasi?lokasi_id=$lokasiId';
+      final res = await http.get(Uri.parse(url));
+
+      if (res.statusCode == 200) {
+        final data = jsonDecode(res.body) as List;
+        setState(() {
+          laporanCount = data.length; // hitung jumlah laporan
+        });
+      } else {
+        print("Error fetch laporan: ${res.statusCode}");
+      }
+    } catch (e) {
+      print("Exception fetch laporan: $e");
+    }
+  }
+
+  // ========================
+  // ROUTING PAGE
+  // ========================
   Widget _getPage(String page) {
+    if (loadingAdmin) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (lokasiId == null) {
+      return const Center(
+        child: Text(
+          "Tidak dapat memuat data lokasi admin.",
+          style: TextStyle(fontSize: 18, color: Colors.red),
+        ),
+      );
+    }
+
     switch (page) {
       case "pengendara":
         return const PengendaraPage();
+      case "laporan":
+        return LaporanPage();
       case "lokasi":
         return const LokasiPageAdmin();
-      case "laporan":
-        return const LaporanPage();
       default:
         return _buildDashboardHome();
     }
   }
 
+  // ========================
+  // DASHBOARD HOME
+  // ========================
   Widget _buildDashboardHome() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
@@ -84,22 +159,21 @@ class _DashboardAdminState extends State<DashboardAdmin> {
                 backgroundImage: const AssetImage("assets/logo_parqrin.png"),
               ),
               const SizedBox(width: 16),
-              Column(
+              const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text("Halo, Admin 👋",
-                      style: TextStyle(fontSize: 18, color: Colors.black54)),
-                  Text("Selamat Datang di Panel",
-                      style:
-                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                children: [
+                  Text(
+                    "Halo Admin 👋",
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
                 ],
               ),
             ],
           ),
-
-          const SizedBox(height: 24),
-
-        
 
           const SizedBox(height: 24),
 
@@ -108,14 +182,26 @@ class _DashboardAdminState extends State<DashboardAdmin> {
           if (!loading)
             Row(
               children: [
-                _buildStatCard("Pengendara", pengendaraCount.toString(),
-                    Icons.people, Colors.blue),
+                _buildStatCard(
+                  "PENGENDARA",
+                  pengendaraCount.toString(),
+                  Icons.people,
+                  Colors.blue,
+                ),
                 const SizedBox(width: 12),
-                _buildStatCard("Lokasi", lokasiCount.toString(),
-                    Icons.location_on, Colors.orange),
+                _buildStatCardAdmin(
+                  "ADMIN",
+                  namaLokasi.isNotEmpty ? namaLokasi : "Belum ada lokasi",
+                  Icons.location_on,
+                  Colors.orange,
+                ),
                 const SizedBox(width: 12),
-                _buildStatCard("Laporan", laporanCount.toString(),
-                    Icons.insert_chart, Colors.red),
+                _buildStatCard(
+                  "LAPORAN",
+                  laporanCount.toString(), 
+                  Icons.insert_chart,
+                  Colors.red,
+                ),
               ],
             ),
         ],
@@ -123,27 +209,51 @@ class _DashboardAdminState extends State<DashboardAdmin> {
     );
   }
 
+  // ========================
+  // CARD NORMAL (VALUE DI ATAS)
+  // ========================
   Widget _buildStatCard(
-      String title, String value, IconData icon, Color color) {
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Expanded(
       child: Card(
+        color: Colors.green[400],
         elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
           child: Column(
             children: [
               CircleAvatar(
-                backgroundColor: color.withOpacity(0.15),
+                backgroundColor: const Color(0xFFE0FFC2),
                 radius: 28,
                 child: Icon(icon, size: 32, color: color),
               ),
               const SizedBox(height: 12),
-              Text(value,
-                  style: const TextStyle(
-                      fontSize: 22, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 4),
-              Text(title, style: const TextStyle(fontSize: 16)),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                title.toUpperCase(),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
             ],
           ),
         ),
@@ -151,11 +261,68 @@ class _DashboardAdminState extends State<DashboardAdmin> {
     );
   }
 
+  // ========================
+  // CARD ADMIN (JUDUL DI ATAS, VALUE DI BAWAH)
+  // ========================
+  Widget _buildStatCardAdmin(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
+    return Expanded(
+      child: Card(
+        color: Colors.green[400],
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+          child: Column(
+            children: [
+              CircleAvatar(
+                backgroundColor: const Color(0xFFE0FFC2),
+                radius: 28,
+                child: Icon(icon, size: 32, color: color),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                title.toUpperCase(),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ========================
+  // UI BUILD
+  // ========================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFFFFFF),
       appBar: Header(
-          title: _selectedPage == "dashboard" ? "Dashboard Admin" : "Menu"),
+        title: _selectedPage == "dashboard" ? "Dashboard Admin" : "Menu",
+      ),
       drawer: Sidebar(
         currentPage: _selectedPage,
         onMenuTap: (page) {
