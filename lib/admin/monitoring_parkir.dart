@@ -41,7 +41,7 @@ class _LokasiPageAdminState extends State<LokasiPageAdmin> {
   }
 
   try {
-    final url = "http://192.168.217.134:8000/api/slots/status";
+    final url = "http://192.168.156.134:8000/api/slots/status";
     final res = await http.post(
       Uri.parse(url),
       body: {

@@ -29,7 +29,7 @@ class _BerandaPageState extends State<BerandaPage> {
 
   Future<void> fetchKendaraanTerbaru() async {
     final response =
-        await http.get(Uri.parse("http://192.168.217.134:8000/api/kendaraan"));
+        await http.get(Uri.parse("http://192.168.156.134:8000/api/kendaraan"));
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body)['data'];

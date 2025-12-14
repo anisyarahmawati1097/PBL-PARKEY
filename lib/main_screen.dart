@@ -56,10 +56,8 @@ class _MainScreenState extends State<MainScreen> {
       _pages = [
         BerandaPage(username: username, email: email),
         const AktivitasPage(),
-        BayarPage(
-          parkirId: 1,   // dummy dulu
-          nominal: 5000,
-        ),
+        const BayarPage(                                    // 2 ✅ TAMBAH INI
+      parkirId: ""),
         const RiwayatPage(),
         AkunPage(
           username: username ?? "",

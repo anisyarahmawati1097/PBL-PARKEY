@@ -19,6 +19,22 @@ class _DaftarKendaraanPageState extends State<DaftarKendaraanPage> {
     fetchKendaraan();
   }
 
+  IconData getIconByJenis(String jenis) {
+  switch (jenis.toLowerCase()) {
+    case 'motor':
+      return Icons.motorcycle;
+    case 'mobil':
+      return Icons.directions_car;
+    case 'truk':
+      return Icons.local_shipping;
+    case 'pick up':
+    case 'pickup':
+      return Icons.local_shipping;
+    default:
+      return Icons.help_outline; // jika jenis tidak dikenal
+  }
+}
+
   Future<void> fetchKendaraan() async {
     setState(() => loading = true);
 
@@ -32,7 +48,7 @@ class _DaftarKendaraanPageState extends State<DaftarKendaraanPage> {
     }
 
     final response = await http.get(
-      Uri.parse("http://192.168.217.134:8000/api/kendaraan?user_id=$userId")
+      Uri.parse("http://192.168.156.134:8000/api/kendaraan?user_id=$userId")
     );
 
     if (response.statusCode == 200) {
@@ -79,7 +95,9 @@ class _DaftarKendaraanPageState extends State<DaftarKendaraanPage> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: ListTile(
-                        leading: const Icon(Icons.directions_car, size: 40),
+                        leading: Icon(getIconByJenis(item["jenis"] ?? ""),size: 40,
+                        ),
+
                         title: Text(
   (item["plat_nomor"] ?? "").toUpperCase(),
   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),

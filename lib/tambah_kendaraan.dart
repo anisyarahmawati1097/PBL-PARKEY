@@ -55,7 +55,7 @@ class _TambahKendaraanPageState extends State<TambahKendaraanPage> {
       return;
     }
 
-    var url = Uri.parse("http://192.168.217.134:8000/api/kendaraan");
+    var url = Uri.parse("http://192.168.156.134:8000/api/kendaraan");
     var request = http.MultipartRequest("POST", url);
 
     request.headers.addAll({

@@ -1,43 +1,109 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class BayarPage extends StatefulWidget {
-  final int parkirId;
-  final int nominal;
+  final String parkirId;
 
-  const BayarPage({super.key, required this.parkirId, required this.nominal});
+  const BayarPage({
+    super.key,
+    required this.parkirId,
+  });
 
   @override
   State<BayarPage> createState() => _BayarPageState();
 }
 
 class _BayarPageState extends State<BayarPage> {
-  String invoiceId = "INV-2025001";
+  final String baseUrl = "http://192.168.156.134:8000/";
+
+  int totalPembayaran = 0;
   String paymentStatus = "pending";
-  late int totalPembayaran;
-  String qrisImage =
-      "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=DUMMY_QRIS_MIDTRANS";
-  int countdown = 180;
-  late final Ticker ticker;
+  String invoiceId = "";
+  String qrisUrl = "";
 
   @override
   void initState() {
     super.initState();
-    totalPembayaran = widget.nominal;
-    ticker = Ticker();
-    ticker.start(
-      duration: const Duration(seconds: 180),
-      onTick: (sec) => setState(() => countdown = sec),
-      onFinish: () => setState(() => paymentStatus = "expired"),
-    );
+    fetchPembayaran();
   }
 
-  @override
-  void dispose() {
-    ticker.stop();
-    super.dispose();
+  // ===========================
+  // GET PEMBAYARAN + QRIS
+  // ===========================
+  Future<void> fetchPembayaran() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("token") ?? "";
+
+    final url =
+        Uri.parse("${baseUrl}api/pembayaran/${widget.parkirId}");
+
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          "Accept": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        final data = body['data'] ?? {};
+        final payment = data['payment'] ?? {};
+
+        setState(() {
+          totalPembayaran = data['total_harga'] ?? 0;
+          invoiceId = payment['invoice_id'] ?? "";
+          paymentStatus = payment['status'] ?? "pending";
+
+          final linkPayment = payment['link_payment'];
+qrisUrl = linkPayment != null && linkPayment.toString().isNotEmpty
+    ? "$baseUrl$linkPayment"
+    : "";
+
+        });
+      } else {
+        Get.snackbar(
+          "Error",
+          "Pembayaran tidak ditemukan (${response.statusCode})",
+        );
+      }
+    } catch (e) {
+      Get.snackbar("Error", "Gagal mengambil data pembayaran");
+    }
   }
 
+  // ===========================
+  // REFRESH STATUS
+  // ===========================
+  Future<void> refreshStatus() async {
+    if (invoiceId.isEmpty) return;
+
+    final url = Uri.parse("${baseUrl}api/status/$invoiceId");
+
+    try {
+      final response = await http.get(url);
+      final data = jsonDecode(response.body);
+
+      setState(() {
+        paymentStatus =
+            data['status']?.toString() ?? paymentStatus;
+      });
+
+      if (paymentStatus == "settlement") {
+        Get.off(() => const BayarSukses());
+      }
+    } catch (_) {
+      Get.snackbar("Error", "Tidak dapat memeriksa status");
+    }
+  }
+
+  // ===========================
+  // STATUS COLOR
+  // ===========================
   Color getStatusColor() {
     switch (paymentStatus) {
       case "pending":
@@ -49,24 +115,43 @@ class _BayarPageState extends State<BayarPage> {
     }
   }
 
+  // ===========================
+  // QRIS WIDGET (FIXED)
+  // ===========================
+  Widget buildQris() {
+    if (qrisUrl.isEmpty) {
+      return Column(
+        children: const [
+          Icon(Icons.qr_code, size: 120, color: Colors.grey),
+          SizedBox(height: 8),
+          Text("QRIS belum tersedia"),
+        ],
+      );
+    }
+
+    return Image.network(
+      qrisUrl,
+      height: 280,
+      width: 280,
+      fit: BoxFit.contain,
+      errorBuilder: (_, __, ___) =>
+          const Icon(Icons.error, size: 80),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
         title: const Text("Pembayaran Parkir"),
-        centerTitle: true,
         backgroundColor: const Color(0xFF6A994E),
-        elevation: 0,
       ),
-      body: SingleChildScrollView(
+      body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            // Instruction
             const Text(
               "Scan QRIS untuk melakukan pembayaran",
-              textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -74,142 +159,94 @@ class _BayarPageState extends State<BayarPage> {
             ),
             const SizedBox(height: 25),
 
-            // QRIS Card
-            Center(
-              child: Card(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16)),
-                elevation: 4,
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      Image.network(
-                        qrisImage,
-                        height: 250,
-                        errorBuilder: (c, e, s) =>
-                            const Icon(Icons.error, size: 80),
-                      ),
-                      const SizedBox(height: 15),
-                      Text(
-                        "Invoice: $invoiceId",
-                        style: const TextStyle(color: Colors.grey),
-                      ),
-                    ],
-                  ),
+            // ================= QRIS =================
+            Card(
+              elevation: 5,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    buildQris(),
+                    const SizedBox(height: 12),
+                    Text(
+                      "Invoice: ${invoiceId.isEmpty ? '-' : invoiceId}",
+                    ),
+                  ],
                 ),
               ),
             ),
+
             const SizedBox(height: 25),
 
-            // Total Payment Card
-            Card(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
-              color: Colors.white,
-              elevation: 2,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 25),
-                child: Column(
-                  children: [
-                    const Text(
-                      "Total Pembayaran",
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      "Rp $totalPembayaran",
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF6A994E),
+            // ================= TOTAL & STATUS =================
+            Row(
+              children: [
+                Expanded(
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        children: [
+                          const Text("Total"),
+                          Text(
+                            "Rp $totalPembayaran",
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF6A994E),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Card(
+                    color: getStatusColor().withOpacity(0.2),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        children: [
+                          const Text("Status"),
+                          Text(
+                            paymentStatus.toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: getStatusColor(),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 20),
 
-            // Payment Status Card
-            Card(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
-              color: getStatusColor().withOpacity(0.15),
-              elevation: 2,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 25),
-                child: Column(
-                  children: [
-                    const Text(
-                      "Status Pembayaran",
-                      style: TextStyle(fontSize: 14),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      paymentStatus.toUpperCase(),
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: getStatusColor(),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Countdown Card
-            Card(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
-              color: Colors.white,
-              elevation: 2,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 25),
-                child: Column(
-                  children: [
-                    const Text(
-                      "QR berlaku sampai:",
-                      style: TextStyle(fontSize: 14),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      "${countdown ~/ 60}:${(countdown % 60).toString().padLeft(2, '0')}",
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.red,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
             const SizedBox(height: 30),
 
-            // Refresh / Confirm Button
+            // ================= REFRESH =================
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  if (paymentStatus == "pending") {
-                    setState(() => paymentStatus = "settlement");
-                  }
-                  if (paymentStatus == "settlement") {
-                    Get.to(() => const BayarSukses());
-                  }
-                },
+                onPressed:
+                    invoiceId.isEmpty ? null : refreshStatus,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6A994E),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                  backgroundColor:
+                      const Color(0xFF6A994E),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 14,
+                  ),
                 ),
                 child: const Text(
                   "Refresh Status",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 18),
                 ),
               ),
             ),
@@ -220,62 +257,45 @@ class _BayarPageState extends State<BayarPage> {
   }
 }
 
-// Ticker sederhana
-class Ticker {
-  int seconds = 0;
-  bool running = false;
-
-  void start({
-    required Duration duration,
-    required Function(int) onTick,
-    required Function() onFinish,
-  }) async {
-    seconds = duration.inSeconds;
-    running = true;
-    while (running && seconds > 0) {
-      await Future.delayed(const Duration(seconds: 1));
-      seconds--;
-      onTick(seconds);
-    }
-    if (seconds <= 0) onFinish();
-  }
-
-  void stop() {
-    running = false;
-  }
-}
-
+// =========================
+// HALAMAN SUKSES
+// =========================
 class BayarSukses extends StatelessWidget {
   const BayarSukses({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade100,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.check_circle, color: Color(0xFF6A994E), size: 120),
+            const Icon(
+              Icons.check_circle,
+              size: 120,
+              color: Color(0xFF6A994E),
+            ),
             const SizedBox(height: 20),
             const Text(
               "Pembayaran Berhasil!",
-              style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 15),
             ElevatedButton(
-              onPressed: () => Get.offAllNamed('/home'),
+              onPressed: () =>
+                  Get.offAllNamed('/home'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6A994E),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                backgroundColor:
+                    const Color(0xFF6A994E),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 40,
+                  vertical: 14,
+                ),
               ),
-              child: const Text(
-                "Kembali ke Beranda",
-                style: TextStyle(fontSize: 18),
-              ),
+              child: const Text("Kembali ke Beranda"),
             ),
           ],
         ),

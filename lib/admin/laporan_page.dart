@@ -24,7 +24,7 @@ class _LaporanPageState extends State<LaporanPage> {
     final lokasiId = prefs.getInt("lokasi_id") ?? 0;
 
     final url =
-        'http://192.168.217.134:8000/api/laporan/harian-lokasi?lokasi_id=$lokasiId';
+        'http://192.168.156.134:8000/api/laporan/harian-lokasi?lokasi_id=$lokasiId';
     print("Fetching laporan: $url");
 
     final response = await http.get(Uri.parse(url));

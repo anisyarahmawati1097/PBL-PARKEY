@@ -18,7 +18,7 @@ class _RiwayatPageState extends State<RiwayatPage> {
     if (value == null) return null;
     try {
       return DateTime.parse(value.toString());
-    } catch (e) {
+    } catch (_) {
       return null;
     }
   }
@@ -30,23 +30,30 @@ class _RiwayatPageState extends State<RiwayatPage> {
   }
 
   Future<void> fetchRiwayat() async {
+    setState(() => loading = true);
+
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString("token") ?? "";
 
-    if (token.isEmpty) return;
+    if (token.isEmpty) {
+      setState(() => loading = false);
+      return;
+    }
 
     final url = Uri.parse(
-        "http://192.168.217.134:8000/api/parkir/aktivitas/riwayat");
+        "http://192.168.156.134:8000/api/parkir/aktivitas/riwayat");
 
     try {
-      final res = await http.get(url, headers: {
-        "Authorization": "Bearer $token",
-        "Accept": "application/json",
-      });
+      final res = await http.get(
+        url,
+        headers: {
+          "Authorization": "Bearer $token",
+          "Accept": "application/json",
+        },
+      );
 
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body);
-
         if (body["status"] == "success") {
           final List data = body["data"];
 
@@ -65,10 +72,9 @@ class _RiwayatPageState extends State<RiwayatPage> {
           });
         }
       }
-
-      setState(() => loading = false);
     } catch (e) {
-      print("Error riwayat: $e");
+      debugPrint("Error riwayat: $e");
+    } finally {
       setState(() => loading = false);
     }
   }
@@ -95,85 +101,96 @@ class _RiwayatPageState extends State<RiwayatPage> {
       ),
       body: loading
           ? const Center(child: CircularProgressIndicator())
-          : riwayat.isEmpty
-              ? const Center(child: Text("Belum ada riwayat parkir"))
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: riwayat.length,
-                  itemBuilder: (context, index) {
-                    final item = riwayat[index];
-
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 16),
+          : RefreshIndicator(
+              onRefresh: fetchRiwayat,
+              child: riwayat.isEmpty
+                  ? ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: const [
+                        SizedBox(height: 200),
+                        Center(child: Text("Belum ada riwayat parkir")),
+                      ],
+                    )
+                  : ListView.builder(
                       padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.06),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-  children: [
-    const Icon(Icons.local_parking, color: Color(0xFF386641)),
-    const SizedBox(width: 8),
-    Text(
-      item['id_lokasi']?.toString() ?? "-", // Menampilkan ID Lokasi
-      style: const TextStyle(
-        fontWeight: FontWeight.bold,
-        fontSize: 16,
-        color: Color(0xFF386641),
-      ),
-    ),
-  ],
-),
+                      itemCount: riwayat.length,
+                      itemBuilder: (context, index) {
+                        final item = riwayat[index];
 
-                          const SizedBox(height: 12),
-                          Text(
-                            "${item['merek']} - ${item['plat']}",
-                            style: const TextStyle(
-                                fontSize: 15, fontWeight: FontWeight.w500),
-                          ),
-                          const Divider(height: 24),
-                          _infoRow(
-                            icon: Icons.login,
-                            color: Colors.orange,
-                            label: "Masuk",
-                            value: formatDate(item["masuk"]),
-                          ),
-                          _infoRow(
-                            icon: Icons.logout,
-                            color: Colors.red,
-                            label: "Keluar",
-                            value: formatDate(item["keluar"]),
-                          ),
-                          const SizedBox(height: 10),
-                          Row(
-                            children: [
-                              const Icon(Icons.payments_outlined,
-                                  color: Colors.purple),
-                              const SizedBox(width: 10),
-                              Text(
-                                "Biaya: Rp ${item["total"]}",
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.purple,
-                                ),
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.06),
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
                               ),
                             ],
                           ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(Icons.local_parking,
+                                      color: Color(0xFF386641)),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    item['id_lokasi'].toString(),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      color: Color(0xFF386641),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                "${item['merek']} - ${item['plat']}",
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const Divider(height: 24),
+                              _infoRow(
+                                icon: Icons.login,
+                                color: Colors.orange,
+                                label: "Masuk",
+                                value: formatDate(item["masuk"]),
+                              ),
+                              _infoRow(
+                                icon: Icons.logout,
+                                color: Colors.red,
+                                label: "Keluar",
+                                value: formatDate(item["keluar"]),
+                              ),
+                              const SizedBox(height: 10),
+                              Row(
+                                children: [
+                                  const Icon(Icons.payments_outlined,
+                                      color: Colors.purple),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    "Biaya: Rp ${item["total"]}",
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.purple,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+            ),
     );
   }
 
