@@ -3,26 +3,24 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class BayarPage extends StatefulWidget {
   final String parkirId;
 
-  const BayarPage({
-    super.key,
-    required this.parkirId,
-  });
+  const BayarPage({super.key, required this.parkirId});
 
   @override
   State<BayarPage> createState() => _BayarPageState();
 }
 
 class _BayarPageState extends State<BayarPage> {
-  final String baseUrl = "http://192.168.156.134:8000/";
+  final String baseUrl = "http://172.20.10.3:8000";
 
   int totalPembayaran = 0;
   String paymentStatus = "pending";
   String invoiceId = "";
-  String qrisUrl = "";
+  String qrUrl = ""; // 🔥 URL QRIS MIDTRANS
 
   @override
   void initState() {
@@ -31,14 +29,13 @@ class _BayarPageState extends State<BayarPage> {
   }
 
   // ===========================
-  // GET PEMBAYARAN + QRIS
+  // GET PEMBAYARAN
   // ===========================
   Future<void> fetchPembayaran() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString("token") ?? "";
 
-    final url =
-        Uri.parse("${baseUrl}api/pembayaran/${widget.parkirId}");
+    final url = Uri.parse("$baseUrl/api/pembayaran/${widget.parkirId}");
 
     try {
       final response = await http.get(
@@ -51,28 +48,42 @@ class _BayarPageState extends State<BayarPage> {
 
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body);
+        print("BODY : $body");
+
         final data = body['data'] ?? {};
         final payment = data['payment'] ?? {};
 
+        final qr_link = payment['link_payment'];
         setState(() {
-          totalPembayaran = data['total_harga'] ?? 0;
+          totalPembayaran = data['harga'] ?? 0;
           invoiceId = payment['invoice_id'] ?? "";
           paymentStatus = payment['status'] ?? "pending";
 
-          final linkPayment = payment['link_payment'];
-qrisUrl = linkPayment != null && linkPayment.toString().isNotEmpty
-    ? "$baseUrl$linkPayment"
-    : "";
-
+          // 🔥 SIMPAN URL QRIS APA ADANYA
+          
+          qrUrl = "$baseUrl/$qr_link";
         });
       } else {
-        Get.snackbar(
-          "Error",
-          "Pembayaran tidak ditemukan (${response.statusCode})",
-        );
+        Get.snackbar("Error", "Pembayaran tidak ditemukan");
       }
     } catch (e) {
       Get.snackbar("Error", "Gagal mengambil data pembayaran");
+    }
+  }
+
+  // ===========================
+  // OPEN QR (BROWSER / EWALLET)
+  // ===========================
+  Future<void> openPayment() async {
+    if (qrUrl.isEmpty) {
+      Get.snackbar("Info", "QR pembayaran belum tersedia");
+      return;
+    }
+
+    final uri = Uri.parse(qrUrl);
+
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      Get.snackbar("Error", "Gagal membuka QRIS");
     }
   }
 
@@ -82,28 +93,24 @@ qrisUrl = linkPayment != null && linkPayment.toString().isNotEmpty
   Future<void> refreshStatus() async {
     if (invoiceId.isEmpty) return;
 
-    final url = Uri.parse("${baseUrl}api/status/$invoiceId");
+    final url = Uri.parse("$baseUrl/api/status/$invoiceId");
 
     try {
       final response = await http.get(url);
       final data = jsonDecode(response.body);
 
       setState(() {
-        paymentStatus =
-            data['status']?.toString() ?? paymentStatus;
+        paymentStatus = data['status'] ?? paymentStatus;
       });
 
       if (paymentStatus == "settlement") {
         Get.off(() => const BayarSukses());
       }
     } catch (_) {
-      Get.snackbar("Error", "Tidak dapat memeriksa status");
+      Get.snackbar("Error", "Gagal cek status");
     }
   }
 
-  // ===========================
-  // STATUS COLOR
-  // ===========================
   Color getStatusColor() {
     switch (paymentStatus) {
       case "pending":
@@ -116,29 +123,8 @@ qrisUrl = linkPayment != null && linkPayment.toString().isNotEmpty
   }
 
   // ===========================
-  // QRIS WIDGET (FIXED)
+  // UI
   // ===========================
-  Widget buildQris() {
-    if (qrisUrl.isEmpty) {
-      return Column(
-        children: const [
-          Icon(Icons.qr_code, size: 120, color: Colors.grey),
-          SizedBox(height: 8),
-          Text("QRIS belum tersedia"),
-        ],
-      );
-    }
-
-    return Image.network(
-      qrisUrl,
-      height: 280,
-      width: 280,
-      fit: BoxFit.contain,
-      errorBuilder: (_, __, ___) =>
-          const Icon(Icons.error, size: 80),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -150,32 +136,33 @@ qrisUrl = linkPayment != null && linkPayment.toString().isNotEmpty
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            const Text(
-              "Scan QRIS untuk melakukan pembayaran",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+            // ================= QR IMAGE =================
+            Image.network(
+              qrUrl,
+              width: 220,
+              height: 220,
+              fit: BoxFit.contain,
             ),
-            const SizedBox(height: 25),
+            const SizedBox(height: 20),
 
-            // ================= QRIS =================
-            Card(
-              elevation: 5,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    buildQris(),
-                    const SizedBox(height: 12),
-                    Text(
-                      "Invoice: ${invoiceId.isEmpty ? '-' : invoiceId}",
-                    ),
-                  ],
+            const Text(
+              "Scan QR untuk melanjutkan pembayaran",
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16),
+            ),
+
+            const SizedBox(height: 20),
+
+            // ================= OPEN BUTTON =================
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: openPayment,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF6A994E),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
+                child: const Text("Buka QRIS", style: TextStyle(fontSize: 18)),
               ),
             ),
 
@@ -229,25 +216,18 @@ qrisUrl = linkPayment != null && linkPayment.toString().isNotEmpty
               ],
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 25),
 
             // ================= REFRESH =================
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed:
-                    invoiceId.isEmpty ? null : refreshStatus,
+                onPressed: invoiceId.isEmpty ? null : refreshStatus,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      const Color(0xFF6A994E),
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 14,
-                  ),
+                  backgroundColor: Colors.grey[700],
+                  padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
-                child: const Text(
-                  "Refresh Status",
-                  style: TextStyle(fontSize: 18),
-                ),
+                child: const Text("Refresh Status"),
               ),
             ),
           ],
@@ -270,26 +250,17 @@ class BayarSukses extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.check_circle,
-              size: 120,
-              color: Color(0xFF6A994E),
-            ),
+            const Icon(Icons.check_circle, size: 120, color: Color(0xFF6A994E)),
             const SizedBox(height: 20),
             const Text(
               "Pembayaran Berhasil!",
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 15),
             ElevatedButton(
-              onPressed: () =>
-                  Get.offAllNamed('/home'),
+              onPressed: () => Get.offAllNamed('/home'),
               style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    const Color(0xFF6A994E),
+                backgroundColor: const Color(0xFF6A994E),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 40,
                   vertical: 14,

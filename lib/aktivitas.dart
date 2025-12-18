@@ -23,10 +23,7 @@ class _AktivitasPageState extends State<AktivitasPage> {
     super.initState();
     fetchAktivitas();
 
-    timer = Timer.periodic(
-      const Duration(seconds: 5),
-      (_) => fetchAktivitas(),
-    );
+    timer = Timer.periodic(const Duration(seconds: 5), (_) => fetchAktivitas());
   }
 
   @override
@@ -45,7 +42,7 @@ class _AktivitasPageState extends State<AktivitasPage> {
     if (token.isEmpty) return;
 
     final url = Uri.parse(
-      "http://192.168.156.134:8000/api/aktivitas-pengendara",
+      "http://172.20.10.3:8000/api/aktivitas-pengendara",
     );
 
     try {
@@ -66,17 +63,18 @@ class _AktivitasPageState extends State<AktivitasPage> {
 
           for (final k in listKendaraan) {
             final parkirs = k["parkirs"] ?? [];
-
             for (final p in parkirs) {
-              if (p["masuk"] != null && p["keluar"] == null) {
-                temp.add({
-                  "lokasi": p["id_lokasi"],
-                  "merek": k["merk"],
-                  "plat": k["plat_nomor"],
-                  "masuk": DateTime.parse(p["masuk"]),
-                  "keluar": null,
-                });
-              }
+              temp.add({
+                "lokasi": p["id_lokasi"],
+                "merek": k["merk"],
+                "plat": k["plat_nomor"],
+                "parkir_id": p["parkir_id"],
+                "masuk": DateTime.parse(p["masuk"]),
+                "keluar": p["keluar"] != null
+    ? DateTime.parse(p["keluar"])
+    : null,
+
+              });
             }
           }
 
@@ -88,53 +86,50 @@ class _AktivitasPageState extends State<AktivitasPage> {
     }
   }
 
-  // ===========================================
-  // AKHIRI PARKIR (TOGGLE KENDARAAN-MASUK API)
-  // ===========================================
-  Future<Map<String, dynamic>?> akhiriParkir(
-    String plat,
-    int lokasiId,
-  ) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString("token") ?? "";
+  // // ===========================================
+  // // AKHIRI PARKIR (TOGGLE KENDARAAN-MASUK API)
+  // // ===========================================
+  // Future<Map<String, dynamic>?> akhiriParkir(String plat, int lokasiId) async {
+  //   final prefs = await SharedPreferences.getInstance();
+  //   final token = prefs.getString("token") ?? "";
 
-    final url = Uri.parse(
-      "http://192.168.156.134:8000/api/kendaraan-masuk"
-      "?plat=$plat&lokasi_id=$lokasiId",
-    );
+  //   final url = Uri.parse(
+  //     "http://192.168.133.134:8000/api/kendaraan-masuk"
+  //     "?plat=$plat&lokasi_id=$lokasiId",
+  //   );
 
-    try {
-      final res = await http.get(
-        url,
-        headers: {
-          "Authorization": "Bearer $token",
-          "Accept": "application/json",
-        },
-      );
+  //   try {
+  //     final res = await http.get(
+  //       url,
+  //       headers: {
+  //         "Authorization": "Bearer $token",
+  //         "Accept": "application/json",
+  //       },
+  //     );
 
-      if (res.statusCode == 200) {
-        final body = jsonDecode(res.body);
+  //     if (res.statusCode == 200) {
+  //       final body = jsonDecode(res.body);
 
-        if (body["status"] == "keluar") {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Parkir berhasil diakhiri")),
-          );
-          return body["data"];
-        }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Gagal mengakhiri parkir")),
-        );
-      }
-    } catch (e) {
-      debugPrint("Error akhiri parkir: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Terjadi kesalahan jaringan")),
-      );
-    }
+  //       if (body["status"] == "keluar") {
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           const SnackBar(content: Text("Parkir berhasil diakhiri")),
+  //         );
+  //         return body["data"];
+  //       }
+  //     } else {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(content: Text("Gagal mengakhiri parkir")),
+  //       );
+  //     }
+  //   } catch (e) {
+  //     debugPrint("Error akhiri parkir: $e");
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text("Terjadi kesalahan jaringan")),
+  //     );
+  //   }
 
-    return null;
-  }
+  //   return null;
+  // }
 
   // =========================
   // FORMAT TANGGAL
@@ -172,7 +167,6 @@ class _AktivitasPageState extends State<AktivitasPage> {
               itemCount: aktivitas.length,
               itemBuilder: (context, index) {
                 final data = aktivitas[index];
-
                 return Container(
                   margin: const EdgeInsets.only(bottom: 16),
                   padding: const EdgeInsets.all(16),
@@ -235,7 +229,7 @@ class _AktivitasPageState extends State<AktivitasPage> {
                               label: "Keluar",
                               value: formatDate(data["keluar"]),
                             ),
-                      if (data["keluar"] == null)
+                      if (data["keluar"] != null)
                         Container(
                           margin: const EdgeInsets.only(top: 14),
                           width: double.infinity,
@@ -243,32 +237,23 @@ class _AktivitasPageState extends State<AktivitasPage> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.red,
                               foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 12,
-                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10),
                               ),
                             ),
                             onPressed: () async {
-                              final dataPayment = await akhiriParkir(
-                                data["plat"],
-                                data["lokasi"],
-                              );
-
-                              if (dataPayment != null) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => BayarPage(
-                                      parkirId: dataPayment["parkir_id"].toString(),
-                                    ),
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => BayarPage(
+                                    parkirId: data["parkir_id"].toString(),
                                   ),
-                                );
-                              }
+                                ),
+                              );
                             },
                             child: const Text(
-                              "Akhiri Parkir",
+                              "Bayar Parkir",
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
@@ -296,10 +281,7 @@ class _AktivitasPageState extends State<AktivitasPage> {
         children: [
           Icon(icon, color: color, size: 22),
           const SizedBox(width: 10),
-          Text(
-            "$label: $value",
-            style: const TextStyle(fontSize: 14),
-          ),
+          Text("$label: $value", style: const TextStyle(fontSize: 14)),
         ],
       ),
     );

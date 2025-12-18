@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 class KendaraanService {
   // Ganti IP sesuai Laravel serve di komputer atau emulator
-  static const String baseUrl = "http://192.168.217.134:8000/api";
+  static const String baseUrl = "http://172.20.10.3:8000/api";
 
  static Future<List<dynamic>> getKendaraanByLokasi(int lokasiId) async {
   final url = Uri.parse("$baseUrl/lokasi/$lokasiId/pengendara");

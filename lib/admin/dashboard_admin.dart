@@ -68,7 +68,7 @@ class _DashboardAdminState extends State<DashboardAdmin> {
     try {
       final res = await http.get(
         Uri.parse(
-          "http://192.168.156.134:8000/api/dashboard/stats?lokasi_id=$lokasiId",
+          "http://172.20.10.3:8000/api/dashboard/stats?lokasi_id=$lokasiId",
         ),
       );
 
@@ -97,7 +97,7 @@ class _DashboardAdminState extends State<DashboardAdmin> {
 
     try {
       final url =
-          'http://192.168.217.134:8000/api/laporan/harian-lokasi?lokasi_id=$lokasiId';
+          'http://172.20.10.3:8000/api/laporan/harian-lokasi?lokasi_id=$lokasiId';
       final res = await http.get(Uri.parse(url));
 
       if (res.statusCode == 200) {

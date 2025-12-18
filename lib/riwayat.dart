@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,21 +15,15 @@ class _RiwayatPageState extends State<RiwayatPage> {
   List<Map<String, dynamic>> riwayat = [];
   bool loading = true;
 
-  DateTime? safeParse(dynamic value) {
-    if (value == null) return null;
-    try {
-      return DateTime.parse(value.toString());
-    } catch (_) {
-      return null;
-    }
-  }
-
   @override
   void initState() {
     super.initState();
     fetchRiwayat();
   }
 
+  // =========================
+  // FETCH RIWAYAT PARKIR
+  // =========================
   Future<void> fetchRiwayat() async {
     setState(() => loading = true);
 
@@ -41,7 +36,8 @@ class _RiwayatPageState extends State<RiwayatPage> {
     }
 
     final url = Uri.parse(
-        "http://192.168.156.134:8000/api/parkir/aktivitas/riwayat");
+      "http://172.20.10.3:8000/api/parkir/aktivitas/riwayat",
+    );
 
     try {
       final res = await http.get(
@@ -54,18 +50,18 @@ class _RiwayatPageState extends State<RiwayatPage> {
 
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body);
+
         if (body["status"] == "success") {
-          final List data = body["data"];
+          final List list = body["data"] ?? [];
 
           setState(() {
-            riwayat = data.map<Map<String, dynamic>>((p) {
+            riwayat = list.map<Map<String, dynamic>>((p) {
               return {
-                "lokasi": p["lokasi"]?["nama_lokasi"] ?? "-",
-                "id_lokasi": p["id_lokasi_data"] ?? "-",
+                "lokasi": p["lokasi"]?["nama_lokasi"] ?? "Lokasi",
                 "merek": p["kendaraans"]?["merk"] ?? "-",
                 "plat": p["kendaraans"]?["plat_nomor"] ?? "-",
-                "masuk": safeParse(p["masuk"]),
-                "keluar": safeParse(p["keluar"]),
+                "masuk": _parseDate(p["masuk"]),
+                "keluar": _parseDate(p["keluar"]),
                 "total": p["total_harga"] ?? 0,
               };
             }).toList();
@@ -79,12 +75,33 @@ class _RiwayatPageState extends State<RiwayatPage> {
     }
   }
 
+  // =========================
+  // PARSE & FORMAT
+  // =========================
+  DateTime? _parseDate(dynamic value) {
+    if (value == null) return null;
+    try {
+      return DateTime.parse(value.toString());
+    } catch (_) {
+      return null;
+    }
+  }
+
   String formatDate(DateTime? dt) {
     if (dt == null) return "-";
     return "${dt.day.toString().padLeft(2, '0')}-"
         "${dt.month.toString().padLeft(2, '0')}-"
-        "${dt.year} ${dt.hour.toString().padLeft(2, '0')}:"
+        "${dt.year} "
+        "${dt.hour.toString().padLeft(2, '0')}:"
         "${dt.minute.toString().padLeft(2, '0')}";
+  }
+
+  String formatRupiah(dynamic value) {
+    final int number = int.tryParse(value.toString()) ?? 0;
+    return "Rp ${number.toString().replaceAllMapped(
+          RegExp(r'\B(?=(\d{3})+(?!\d))'),
+          (match) => '.',
+        )}";
   }
 
   @override
@@ -98,9 +115,12 @@ class _RiwayatPageState extends State<RiwayatPage> {
           style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,
+        elevation: 2,
       ),
       body: loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(color: Color(0xFF6A994E)),
+            )
           : RefreshIndicator(
               onRefresh: fetchRiwayat,
               child: riwayat.isEmpty
@@ -108,7 +128,12 @@ class _RiwayatPageState extends State<RiwayatPage> {
                       physics: const AlwaysScrollableScrollPhysics(),
                       children: const [
                         SizedBox(height: 200),
-                        Center(child: Text("Belum ada riwayat parkir")),
+                        Center(
+                          child: Text(
+                            "Belum ada riwayat parkir",
+                            style: TextStyle(fontSize: 16),
+                          ),
+                        ),
                       ],
                     )
                   : ListView.builder(
@@ -136,11 +161,13 @@ class _RiwayatPageState extends State<RiwayatPage> {
                             children: [
                               Row(
                                 children: [
-                                  const Icon(Icons.local_parking,
-                                      color: Color(0xFF386641)),
+                                  const Icon(
+                                    Icons.local_parking,
+                                    color: Color(0xFF386641),
+                                  ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    item['id_lokasi'].toString(),
+                                    item["lokasi"],
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16,
@@ -173,14 +200,17 @@ class _RiwayatPageState extends State<RiwayatPage> {
                               const SizedBox(height: 10),
                               Row(
                                 children: [
-                                  const Icon(Icons.payments_outlined,
-                                      color: Colors.purple),
+                                  const Icon(
+                                    Icons.payments_outlined,
+                                    color: Colors.purple,
+                                  ),
                                   const SizedBox(width: 10),
                                   Text(
-                                    "Biaya: Rp ${item["total"]}",
+                                    formatRupiah(item["total"]),
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       color: Colors.purple,
+                                      fontSize: 15,
                                     ),
                                   ),
                                 ],
@@ -206,7 +236,10 @@ class _RiwayatPageState extends State<RiwayatPage> {
         children: [
           Icon(icon, color: color, size: 22),
           const SizedBox(width: 10),
-          Text("$label: $value", style: const TextStyle(fontSize: 14)),
+          Text(
+            "$label: $value",
+            style: const TextStyle(fontSize: 14),
+          ),
         ],
       ),
     );

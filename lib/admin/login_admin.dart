@@ -31,7 +31,7 @@ class _LoginAdminPageState extends State<LoginAdminPage> {
     setState(() => _isLoading = true);
 
     try {
-      final url = Uri.parse("http://192.168.156.134:8000/api/admin/login");
+      final url = Uri.parse("http://172.20.10.3:8000/api/admin/login");
 
       final response = await http.post(
         url,

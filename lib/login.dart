@@ -30,7 +30,7 @@ class _LoginPageState extends State<LoginPage> {
     }
 
     try {
-      final url = Uri.parse("http://192.168.156.134:8000/api/masuk");
+      final url = Uri.parse("http://172.20.10.3:8000/api/masuk");
 
       final response = await http.post(
         url,

@@ -23,7 +23,7 @@ class _PengendaraPageState extends State<PengendaraPage> {
   Future fetchUsers() async {
     try {
       final res = await http.get(
-        Uri.parse("http://192.168.156.134:8000/api/users"),
+        Uri.parse("http://172.20.10.3:8000/api/users"),
       );
 
       if (res.statusCode == 200) {
