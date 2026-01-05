@@ -7,7 +7,6 @@ import 'beranda.dart';
 import 'aktivitas.dart';
 import 'riwayat.dart';
 import 'akun.dart';
-import 'bayar.dart';
 
 class MainScreen extends StatefulWidget {
   final String? username;
@@ -29,11 +28,29 @@ class _MainScreenState extends State<MainScreen> {
   String? email;
 
   List<Widget> _pages = [];
+  bool _handledArgs = false; // 🔥 penting
 
   @override
   void initState() {
     super.initState();
     loadUser();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (_handledArgs) return;
+
+    final args = ModalRoute.of(context)?.settings.arguments;
+
+    if (args == "riwayat") {
+      setState(() {
+        _selectedIndex = 2; // 🔥 pindah ke Riwayat
+      });
+    }
+
+    _handledArgs = true;
   }
 
   Future<void> loadUser() async {
@@ -51,13 +68,10 @@ class _MainScreenState extends State<MainScreen> {
       email = widget.email ?? "email@example.com";
     }
 
-    // Set semua halaman setelah username/email diperoleh
     setState(() {
       _pages = [
         BerandaPage(username: username, email: email),
         const AktivitasPage(),
-        const BayarPage(                                    // 2 ✅ TAMBAH INI
-      parkirId: ""),
         const RiwayatPage(),
         AkunPage(
           username: username ?? "",
@@ -94,7 +108,6 @@ class _MainScreenState extends State<MainScreen> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Beranda"),
           BottomNavigationBarItem(icon: Icon(Icons.list_alt), label: "Aktivitas"),
-          BottomNavigationBarItem(icon: Icon(Icons.qr_code_scanner), label: "Bayar"),
           BottomNavigationBarItem(icon: Icon(Icons.history), label: "Riwayat"),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Akun"),
         ],

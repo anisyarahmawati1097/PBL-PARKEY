@@ -27,7 +27,7 @@ class _DashboardAdminState extends State<DashboardAdmin> {
   String _selectedPage = "dashboard";
 
   int pengendaraCount = 0;
-  int lokasiCount = 0;
+  int lokasiCount = 0; // kendaraan
   int laporanCount = 0;
 
   int? lokasiId;
@@ -46,7 +46,7 @@ class _DashboardAdminState extends State<DashboardAdmin> {
   // LOAD DATA ADMIN
   // ========================
   Future<void> loadAdminLocation() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
 
     lokasiId = prefs.getInt("lokasi_id");
     namaLokasi = prefs.getString("nama_lokasi") ?? "";
@@ -54,65 +54,91 @@ class _DashboardAdminState extends State<DashboardAdmin> {
     setState(() => loadingAdmin = false);
 
     if (lokasiId != null) {
-      fetchStats();         // fetch pengendara & lokasi
-      fetchLaporanCount();  // fetch jumlah laporan langsung
+      fetchStats();
+      fetchLaporanCount(); // ✅ KUNCI LAPORAN
     }
   }
 
   // ========================
-  // FETCH STATS (PENGENDARA & LOKASI)
+  // FETCH STATS (PENGENDARA & KENDARAAN)
   // ========================
-  Future fetchStats() async {
+  Future<void> fetchStats() async {
     if (lokasiId == null) return;
 
     try {
       final res = await http.get(
         Uri.parse(
-          "http://172.20.10.3:8000/api/dashboard/stats?lokasi_id=$lokasiId",
+          "https://dottie-proaudience-harmonistically.ngrok-free.dev/api/dashboard/stats?lokasi_id=$lokasiId",
         ),
+        headers: {
+          'Accept': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+        },
       );
+
+      debugPrint("STATUS STATS: ${res.statusCode}");
+      debugPrint("BODY STATS: ${res.body}");
 
       if (res.statusCode == 200) {
         final json = jsonDecode(res.body);
 
         setState(() {
-          pengendaraCount = json['pengendara'];
-          lokasiCount = json['lokasi'];
+          pengendaraCount = json['pengendara'] ?? 0;
+          lokasiCount     = json['kendaraan'] ?? 0;
           loading = false;
         });
       } else {
-        setState(() => loading = false);
+        loading = false;
       }
     } catch (e) {
-      print("Error fetch stats: $e");
-      setState(() => loading = false);
+      debugPrint("Error fetch stats: $e");
+      loading = false;
     }
   }
 
   // ========================
-  // FETCH JUMLAH LAPORAN LANGSUNG
+  // FETCH LAPORAN COUNT (REAL DATA)
   // ========================
   Future<void> fetchLaporanCount() async {
-    if (lokasiId == null) return;
+  if (lokasiId == null) return;
 
-    try {
-      final url =
-          'http://172.20.10.3:8000/api/laporan/harian-lokasi?lokasi_id=$lokasiId';
-      final res = await http.get(Uri.parse(url));
+  try {
+    final uri = Uri.parse(
+      "http://151.243.222.93:31020/api/laporan/harian-lokasi?lokasi_id=$lokasiId",
+    );
 
-      if (res.statusCode == 200) {
-        final data = jsonDecode(res.body) as List;
+    final res = await http.get(
+      uri,
+      headers: {'Accept': 'application/json'},
+    );
+
+    debugPrint("STATUS LAPORAN: ${res.statusCode}");
+    debugPrint("BODY LAPORAN: ${res.body}");
+
+    if (res.statusCode == 200) {
+      final decoded = jsonDecode(res.body);
+
+      if (decoded is List) {
         setState(() {
-          laporanCount = data.length; // hitung jumlah laporan
+          laporanCount = decoded.length; // ✅ AMAN
         });
       } else {
-        print("Error fetch laporan: ${res.statusCode}");
+        setState(() {
+          laporanCount = 0;
+        });
       }
-    } catch (e) {
-      print("Exception fetch laporan: $e");
+    } else {
+      setState(() {
+        laporanCount = 0;
+      });
     }
+  } catch (e) {
+    debugPrint("❌ Error fetch laporan: $e");
+    setState(() {
+      laporanCount = 0;
+    });
   }
-
+}
   // ========================
   // ROUTING PAGE
   // ========================
@@ -134,7 +160,7 @@ class _DashboardAdminState extends State<DashboardAdmin> {
       case "pengendara":
         return const PengendaraPage();
       case "laporan":
-        return LaporanPage();
+        return const LaporanPage();
       case "lokasi":
         return const LokasiPageAdmin();
       default:
@@ -159,22 +185,15 @@ class _DashboardAdminState extends State<DashboardAdmin> {
                 backgroundImage: const AssetImage("assets/logo_parqrin.png"),
               ),
               const SizedBox(width: 16),
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Halo Admin 👋",
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                ],
+              const Text(
+                "Halo Admin 👋",
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
-
           const SizedBox(height: 24),
 
           if (loading) const Center(child: CircularProgressIndicator()),
@@ -198,7 +217,7 @@ class _DashboardAdminState extends State<DashboardAdmin> {
                 const SizedBox(width: 12),
                 _buildStatCard(
                   "LAPORAN",
-                  laporanCount.toString(), 
+                  laporanCount.toString(),
                   Icons.insert_chart,
                   Colors.red,
                 ),
@@ -210,7 +229,7 @@ class _DashboardAdminState extends State<DashboardAdmin> {
   }
 
   // ========================
-  // CARD NORMAL (VALUE DI ATAS)
+  // CARD NORMAL
   // ========================
   Widget _buildStatCard(
     String title,
@@ -241,18 +260,14 @@ class _DashboardAdminState extends State<DashboardAdmin> {
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 6),
               Text(
-                title.toUpperCase(),
+                title,
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
-                textAlign: TextAlign.center,
               ),
             ],
           ),
@@ -262,7 +277,7 @@ class _DashboardAdminState extends State<DashboardAdmin> {
   }
 
   // ========================
-  // CARD ADMIN (JUDUL DI ATAS, VALUE DI BAWAH)
+  // CARD ADMIN
   // ========================
   Widget _buildStatCardAdmin(
     String title,
@@ -288,12 +303,11 @@ class _DashboardAdminState extends State<DashboardAdmin> {
               ),
               const SizedBox(height: 12),
               Text(
-                title.toUpperCase(),
+                title,
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
-                textAlign: TextAlign.center,
               ),
               const SizedBox(height: 6),
               Text(
@@ -302,9 +316,6 @@ class _DashboardAdminState extends State<DashboardAdmin> {
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),

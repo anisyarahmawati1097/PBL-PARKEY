@@ -48,7 +48,7 @@ class _DaftarKendaraanPageState extends State<DaftarKendaraanPage> {
     }
 
     final response = await http.get(
-      Uri.parse("http://172.20.10.3:8000/api/kendaraan?user_id=$userId")
+      Uri.parse("http://151.243.222.93:31020/api/kendaraan?user_id=$userId")
     );
 
     if (response.statusCode == 200) {

@@ -73,7 +73,7 @@ class _PengaturanProfilPageState extends State<PengaturanProfilPage> {
 
     try {
       final response = await http.post(
-        Uri.parse("http://172.20.10.3:8000/api/update-profile"),
+        Uri.parse("http://151.243.222.93:31020/api/update-profile"),
         headers: {
           "Authorization": "Bearer $token",
           "Accept": "application/json",
@@ -122,7 +122,7 @@ class _PengaturanProfilPageState extends State<PengaturanProfilPage> {
 
     try {
       await http.post(
-        Uri.parse("http://172.20.10.3:8000/api/logout"),
+        Uri.parse("http://151.243.222.93:31020/api/logout"),
         headers: {
           "Authorization": "Bearer $token",
           "Accept": "application/json",
@@ -231,18 +231,18 @@ class _PengaturanProfilPageState extends State<PengaturanProfilPage> {
               onPressed: _loading ? null : _saveProfile,
               child: _loading
                   ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text("SIMPAN", style: TextStyle(fontSize: 18)),
+                  : const Text("SIMPAN", style: TextStyle(fontSize: 18, color: Colors.black,)),
             ),
             const SizedBox(height: 12),
             // Tombol Keluar
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFF7272),
+                backgroundColor: const Color.fromARGB(255, 255, 70, 70),
                 minimumSize: const Size(double.infinity, 50),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               onPressed: _logout,
-              child: const Text("KELUAR", style: TextStyle(fontSize: 18)),
+              child: const Text("KELUAR", style: TextStyle(fontSize: 18, color: Colors.black,)),
             ),
           ],
         ),

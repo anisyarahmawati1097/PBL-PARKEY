@@ -31,7 +31,7 @@ class _LoginAdminPageState extends State<LoginAdminPage> {
     setState(() => _isLoading = true);
 
     try {
-      final url = Uri.parse("http://172.20.10.3:8000/api/admin/login");
+      final url = Uri.parse("https://dottie-proaudience-harmonistically.ngrok-free.dev/api/admin/login");
 
       final response = await http.post(
         url,
@@ -145,6 +145,7 @@ class _LoginAdminPageState extends State<LoginAdminPage> {
                       onPressed: _isLoading ? null : _login,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
+                        foregroundColor: Colors.black,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
                       child: _isLoading

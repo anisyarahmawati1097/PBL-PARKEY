@@ -54,7 +54,7 @@ class QRCodePage extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Image.network(
-                      'http://172.20.10.3:8000/' + qrPath,
+                      'http://151.243.222.93:31020/' + qrPath,
                       width: 200,
                       height: 200,
                       fit: BoxFit.cover,

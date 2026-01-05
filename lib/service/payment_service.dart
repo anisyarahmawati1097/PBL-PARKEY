@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class PaymentService {
-  static const String baseUrl = "http://172.20.10.3:8000/api";
+  static const String baseUrl = "http://151.243.222.93:31020/api";
 
   static Future<String> checkStatus(String invoiceId) async {
     final response =

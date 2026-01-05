@@ -1,12 +1,11 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart'; // ⬅️ WAJIB UNTUK kIsWeb
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:excel/excel.dart';
-import 'package:path_provider/path_provider.dart';
-import 'dart:io';
-import 'package:flutter/foundation.dart';
-import 'dart:html' as html;
+
+import '../utils/export_excel.dart';
 
 class LaporanPage extends StatefulWidget {
   const LaporanPage({super.key});
@@ -24,33 +23,47 @@ class _LaporanPageState extends State<LaporanPage> {
     laporanFuture = fetchLaporan();
   }
 
+  // ============================
+  // FETCH DATA LAPORAN (WEB & ANDROID AMAN)
+  // ============================
   Future<List<Map<String, dynamic>>> fetchLaporan() async {
     final prefs = await SharedPreferences.getInstance();
     final lokasiId = prefs.getInt("lokasi_id") ?? 0;
 
+    // 🔥 KUNCI UTAMA ADA DI SINI
+    final String baseUrl = kIsWeb
+        ? 'https://dottie-proaudience-harmonistically.ngrok-free.dev'
+        : 'http://151.243.222.93:31020';
+
     final url =
-        'http://172.20.10.3:8000/api/laporan/harian-lokasi?lokasi_id=$lokasiId';
-    print("Fetching laporan: $url");
+        '$baseUrl/api/laporan/harian-lokasi?lokasi_id=$lokasiId';
 
-    final response = await http.get(Uri.parse(url));
+    debugPrint("🔗 FETCH LAPORAN: $url");
 
-    print("Status code: ${response.statusCode}");
-    print("Response body: ${response.body}");
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Accept': 'application/json',
+        if (kIsWeb) 'ngrok-skip-browser-warning': 'true',
+      },
+    );
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.map((e) => e as Map<String, dynamic>).toList();
-    } else {
-      throw Exception('Gagal mengambil data laporan');
+    debugPrint("STATUS: ${response.statusCode}");
+    debugPrint("BODY: ${response.body}");
+
+    if (response.statusCode == 200 &&
+        response.headers['content-type']?.contains('application/json') == true) {
+      final List data = jsonDecode(response.body);
+      return List<Map<String, dynamic>>.from(data);
     }
+
+    throw Exception('Gagal memuat laporan');
   }
 
   // ============================
-  // FUNGSI EXPORT FIX → DATA MASUK
+  // EXPORT EXCEL
   // ============================
   Future<void> exportToExcel(List<Map<String, dynamic>> laporan) async {
-    print("DEBUG laporan: $laporan");
-
     if (laporan.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Tidak ada data untuk diexport")),
@@ -58,87 +71,28 @@ class _LaporanPageState extends State<LaporanPage> {
       return;
     }
 
-    // Buat Excel baru
     final excel = Excel.createExcel();
+    final sheet = excel[excel.getDefaultSheet()!];
 
-    // Ambil sheet default
-    final String sheetName = excel.getDefaultSheet() ?? "Sheet1";
-    final Sheet sheet = excel[sheetName];
-
-    // Header
     sheet.appendRow(["Lokasi", "Tanggal", "Total Kunjungan"]);
 
-    // Isi data
     for (var item in laporan) {
       sheet.appendRow([
-        item['lokasi'] ?? "",
-        item['tanggal'] ?? "",
+        item['lokasi'] ?? '',
+        item['tanggal'] ?? '',
         item['total'] ?? 0,
       ]);
     }
 
     final fileBytes = excel.encode();
-    if (fileBytes == null) {
-      print("ERROR: Excel.encode() menghasilkan null!");
-      return;
+    if (fileBytes != null) {
+      exportExcel(fileBytes);
     }
-
-    // ===== WEB DOWNLOAD =====
-    if (kIsWeb) {
-      final blob = html.Blob(
-          [fileBytes],
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-      );
-
-      final url = html.Url.createObjectUrlFromBlob(blob);
-      final anchor = html.AnchorElement(href: url)
-        ..setAttribute("download", "laporan_harian.xlsx")
-        ..click();
-
-      html.Url.revokeObjectUrl(url);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Export Excel berhasil (WEB)")),
-      );
-      return;
-    }
-
-    // ===== MOBILE / DESKTOP SAVE FILE =====
-    final dir = await getApplicationDocumentsDirectory();
-    final path = "${dir.path}/laporan_harian.xlsx";
-
-    File(path)
-      ..createSync(recursive: true)
-      ..writeAsBytesSync(fileBytes);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Export berhasil disimpan: $path")),
-    );
   }
 
-  Widget _buildLaporanKunjungan({
-    required String lokasi,
-    required String tanggal,
-    required int totalKunjungan,
-  }) {
-    return Card(
-      elevation: 3,
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      child: ListTile(
-        leading: const Icon(Icons.location_on, color: Colors.green, size: 34),
-        title: Text(
-          'Lokasi: $lokasi',
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-        ),
-        subtitle: Text(
-          "$tanggal\nTotal Kunjungan: $totalKunjungan",
-          style: const TextStyle(fontSize: 15),
-        ),
-      ),
-    );
-  }
-
+  // ============================
+  // UI
+  // ============================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -161,22 +115,32 @@ class _LaporanPageState extends State<LaporanPage> {
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return const Center(child: Text('Belum ada laporan'));
-            } else {
-              final laporan = snapshot.data!;
-              return ListView(
-                children: laporan.map((item) {
-                  return _buildLaporanKunjungan(
-                    lokasi: item['lokasi'],
-                    tanggal: item['tanggal'],
-                    totalKunjungan: item['total'],
-                  );
-                }).toList(),
-              );
             }
+
+            if (snapshot.hasError) {
+              return Center(child: Text("Error: ${snapshot.error}"));
+            }
+
+            final data = snapshot.data ?? [];
+
+            if (data.isEmpty) {
+              return const Center(child: Text("Belum ada laporan"));
+            }
+
+            return ListView(
+              children: data.map((item) {
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  child: ListTile(
+                    leading: const Icon(Icons.location_on, color: Colors.green),
+                    title: Text("Lokasi: ${item['lokasi']}"),
+                    subtitle: Text(
+                      "${item['tanggal']}\nTotal: ${item['total']}",
+                    ),
+                  ),
+                );
+              }).toList(),
+            );
           },
         ),
       ),

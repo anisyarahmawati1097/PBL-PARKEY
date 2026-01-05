@@ -21,23 +21,34 @@ class _PengendaraPageState extends State<PengendaraPage> {
   }
 
   Future fetchUsers() async {
-    try {
-      final res = await http.get(
-        Uri.parse("http://172.20.10.3:8000/api/users"),
-      );
+  try {
+    final res = await http.get(
+      Uri.parse(
+        "https://dottie-proaudience-harmonistically.ngrok-free.dev/api/users",
+      ),
+      headers: {
+        'Accept': 'application/json',
+        'ngrok-skip-browser-warning': 'true', // 🔥 KUNCI UTAMA
+      },
+    );
 
-      if (res.statusCode == 200) {
-        setState(() {
-          users = jsonDecode(res.body);
-          loading = false;
-        });
-      } else {
-        setState(() => loading = false);
-      }
-    } catch (e) {
-      setState(() => loading = false);
+    debugPrint("STATUS USERS API: ${res.statusCode}");
+    debugPrint("BODY USERS API: ${res.body}");
+
+    if (res.statusCode == 200 &&
+        res.headers['content-type']?.contains('application/json') == true) {
+      setState(() {
+        users = jsonDecode(res.body) as List<dynamic>;
+        loading = false;
+      });
+    } else {
+      loading = false;
     }
+  } catch (e) {
+    debugPrint("ERROR FETCH USERS: $e");
+    loading = false;
   }
+}
 
   Widget _buildUserCard(dynamic user) {
     return Card(

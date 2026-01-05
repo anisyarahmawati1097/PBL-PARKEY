@@ -50,7 +50,7 @@ class LokasiPage extends StatelessWidget {
               tarifPickup:
                   "2 Jam Pertama IDR 6000\nJam Berikutnya IDR 3000/Jam",
               tarifTruk:
-                  "2 Jam Pertama IDR 8000\nJam Berikutnya IDR 4000/Jam",
+                  "2 Jam Pertama IDR 31020\nJam Berikutnya IDR 4000/Jam",
             ),
 
             const SizedBox(height: 12),

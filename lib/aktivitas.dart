@@ -1,10 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'bayar.dart';
 
 class AktivitasPage extends StatefulWidget {
@@ -18,12 +16,16 @@ class _AktivitasPageState extends State<AktivitasPage> {
   List<Map<String, dynamic>> aktivitas = [];
   Timer? timer;
 
+  /// 🔥 PARKIR ID YANG SUDAH DIBAYAR (FILTER UI)
+  final Set<String> paidParkirIds = {};
+
   @override
   void initState() {
     super.initState();
     fetchAktivitas();
-
-    timer = Timer.periodic(const Duration(seconds: 5), (_) => fetchAktivitas());
+    timer = Timer.periodic(const Duration(seconds: 5), (_) {
+      fetchAktivitas();
+    });
   }
 
   @override
@@ -38,11 +40,10 @@ class _AktivitasPageState extends State<AktivitasPage> {
   Future<void> fetchAktivitas() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString("token") ?? "";
-
     if (token.isEmpty) return;
 
     final url = Uri.parse(
-      "http://172.20.10.3:8000/api/aktivitas-pengendara",
+      "http://151.243.222.93:31020/api/aktivitas-pengendara",
     );
 
     try {
@@ -56,80 +57,46 @@ class _AktivitasPageState extends State<AktivitasPage> {
 
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body);
-
         if (body["status"] == "success") {
           final List<dynamic> listKendaraan = body["data"] ?? [];
           final List<Map<String, dynamic>> temp = [];
 
           for (final k in listKendaraan) {
             final parkirs = k["parkirs"] ?? [];
-            for (final p in parkirs) {
-              temp.add({
-                "lokasi": p["id_lokasi"],
-                "merek": k["merk"],
-                "plat": k["plat_nomor"],
-                "parkir_id": p["parkir_id"],
-                "masuk": DateTime.parse(p["masuk"]),
-                "keluar": p["keluar"] != null
-    ? DateTime.parse(p["keluar"])
-    : null,
 
-              });
+            for (final p in parkirs) {
+              final parkirId = p["parkir_id"].toString();
+              final payment = p["payment"] ?? [];
+
+              // 🚫 JANGAN TAMPILKAN YANG SUDAH DIBAYAR
+              if(p["keluar"] != null && payment != null && payment["status"] != "pending") {
+                continue;
+              } else {
+                temp.add({
+                  "lokasi": p["id_lokasi"],
+                  "merek": k["merk"],
+                  "plat": k["plat_nomor"],
+                  "parkir_id": parkirId,
+                  "masuk": DateTime.parse(p["masuk"]),
+                  "keluar": p["keluar"] != null
+                      ? DateTime.parse(p["keluar"])
+                      : null,
+                });
+              }
             }
           }
 
-          setState(() => aktivitas = temp);
+          if (mounted) {
+            setState(() {
+              aktivitas = temp;
+            });
+          }
         }
       }
     } catch (e) {
       debugPrint("Error aktivitas: $e");
     }
   }
-
-  // // ===========================================
-  // // AKHIRI PARKIR (TOGGLE KENDARAAN-MASUK API)
-  // // ===========================================
-  // Future<Map<String, dynamic>?> akhiriParkir(String plat, int lokasiId) async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   final token = prefs.getString("token") ?? "";
-
-  //   final url = Uri.parse(
-  //     "http://192.168.133.134:8000/api/kendaraan-masuk"
-  //     "?plat=$plat&lokasi_id=$lokasiId",
-  //   );
-
-  //   try {
-  //     final res = await http.get(
-  //       url,
-  //       headers: {
-  //         "Authorization": "Bearer $token",
-  //         "Accept": "application/json",
-  //       },
-  //     );
-
-  //     if (res.statusCode == 200) {
-  //       final body = jsonDecode(res.body);
-
-  //       if (body["status"] == "keluar") {
-  //         ScaffoldMessenger.of(context).showSnackBar(
-  //           const SnackBar(content: Text("Parkir berhasil diakhiri")),
-  //         );
-  //         return body["data"];
-  //       }
-  //     } else {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         const SnackBar(content: Text("Gagal mengakhiri parkir")),
-  //       );
-  //     }
-  //   } catch (e) {
-  //     debugPrint("Error akhiri parkir: $e");
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(content: Text("Terjadi kesalahan jaringan")),
-  //     );
-  //   }
-
-  //   return null;
-  // }
 
   // =========================
   // FORMAT TANGGAL
@@ -153,7 +120,6 @@ class _AktivitasPageState extends State<AktivitasPage> {
           style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,
-        elevation: 2,
       ),
       body: aktivitas.isEmpty
           ? const Center(
@@ -167,6 +133,7 @@ class _AktivitasPageState extends State<AktivitasPage> {
               itemCount: aktivitas.length,
               itemBuilder: (context, index) {
                 final data = aktivitas[index];
+
                 return Container(
                   margin: const EdgeInsets.only(bottom: 16),
                   padding: const EdgeInsets.all(16),
@@ -229,6 +196,10 @@ class _AktivitasPageState extends State<AktivitasPage> {
                               label: "Keluar",
                               value: formatDate(data["keluar"]),
                             ),
+
+                      // =========================
+                      // TOMBOL BAYAR
+                      // =========================
                       if (data["keluar"] != null)
                         Container(
                           margin: const EdgeInsets.only(top: 14),
@@ -243,14 +214,27 @@ class _AktivitasPageState extends State<AktivitasPage> {
                               ),
                             ),
                             onPressed: () async {
-                              Navigator.push(
+                              final result = await Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => BayarPage(
-                                    parkirId: data["parkir_id"].toString(),
-                                  ),
+                                  builder: (_) =>
+                                      BayarPage(parkirId: data["parkir_id"]),
                                 ),
                               );
+
+                              // 🔥 BAYAR SUKSES
+                              if (result == true) {
+                                setState(() {
+                                  paidParkirIds.add(
+                                    data["parkir_id"].toString(),
+                                  );
+                                  aktivitas.removeWhere(
+                                    (item) =>
+                                        item["parkir_id"].toString() ==
+                                        data["parkir_id"].toString(),
+                                  );
+                                });
+                              }
                             },
                             child: const Text(
                               "Bayar Parkir",

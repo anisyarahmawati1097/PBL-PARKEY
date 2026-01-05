@@ -29,7 +29,7 @@ class _BerandaPageState extends State<BerandaPage> {
 
   Future<void> fetchKendaraanTerbaru() async {
     final response =
-        await http.get(Uri.parse("http://172.20.10.3:8000/api/kendaraan"));
+        await http.get(Uri.parse("http://151.243.222.93:31020/api/kendaraan"));
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body)['data'];
@@ -46,13 +46,13 @@ class _BerandaPageState extends State<BerandaPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF6A994E), // solid background
+      backgroundColor: const Color(0xFF6A994E), 
       body: SafeArea(
         child: Column(
           children: [
-            // Header solid color
+           
             Container(
-              color: const Color(0xFF6A994E), // solid hijau
+              color: const Color(0xFF6A994E), 
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 25),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -207,7 +207,7 @@ class _BerandaPageState extends State<BerandaPage> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x11000000), // shadow sangat ringan, bukan gradasi
+            color: Color(0x11000000), 
             blurRadius: 4,
             offset: Offset(0, 2),
           ),

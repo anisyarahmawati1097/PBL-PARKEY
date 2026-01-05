@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'main_screen.dart';
 
 class BayarPage extends StatefulWidget {
   final String parkirId;
@@ -15,12 +16,12 @@ class BayarPage extends StatefulWidget {
 }
 
 class _BayarPageState extends State<BayarPage> {
-  final String baseUrl = "http://172.20.10.3:8000";
+  final String baseUrl = "http://151.243.222.93:31020";
 
   int totalPembayaran = 0;
   String paymentStatus = "pending";
   String invoiceId = "";
-  String qrUrl = ""; // 🔥 URL QRIS MIDTRANS
+  String qrUrl = "";
 
   @override
   void initState() {
@@ -34,7 +35,6 @@ class _BayarPageState extends State<BayarPage> {
   Future<void> fetchPembayaran() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString("token") ?? "";
-
     final url = Uri.parse("$baseUrl/api/pembayaran/${widget.parkirId}");
 
     try {
@@ -48,40 +48,30 @@ class _BayarPageState extends State<BayarPage> {
 
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body);
-        print("BODY : $body");
-
         final data = body['data'] ?? {};
         final payment = data['payment'] ?? {};
 
-        final qr_link = payment['link_payment'];
         setState(() {
           totalPembayaran = data['harga'] ?? 0;
           invoiceId = payment['invoice_id'] ?? "";
           paymentStatus = payment['status'] ?? "pending";
-
-          // 🔥 SIMPAN URL QRIS APA ADANYA
-          
-          qrUrl = "$baseUrl/$qr_link";
+          qrUrl = "$baseUrl/${payment['link_payment']}";
         });
       } else {
         Get.snackbar("Error", "Pembayaran tidak ditemukan");
       }
-    } catch (e) {
+    } catch (_) {
       Get.snackbar("Error", "Gagal mengambil data pembayaran");
     }
   }
 
   // ===========================
-  // OPEN QR (BROWSER / EWALLET)
+  // OPEN QR
   // ===========================
   Future<void> openPayment() async {
-    if (qrUrl.isEmpty) {
-      Get.snackbar("Info", "QR pembayaran belum tersedia");
-      return;
-    }
+    if (qrUrl.isEmpty || paymentStatus == "settlement") return;
 
     final uri = Uri.parse(qrUrl);
-
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       Get.snackbar("Error", "Gagal membuka QRIS");
     }
@@ -104,22 +94,31 @@ class _BayarPageState extends State<BayarPage> {
       });
 
       if (paymentStatus == "settlement") {
-        Get.off(() => const BayarSukses());
+        Get.snackbar(
+          "Berhasil",
+          "Pembayaran berhasil",
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
       }
     } catch (_) {
       Get.snackbar("Error", "Gagal cek status");
     }
   }
 
+  // ===========================
+  // STATUS
+  // ===========================
   Color getStatusColor() {
-    switch (paymentStatus) {
-      case "pending":
-        return Colors.orange;
-      case "settlement":
-        return const Color(0xFF6A994E);
-      default:
-        return Colors.red;
-    }
+    return paymentStatus == "settlement"
+        ? const Color(0xFF6A994E)
+        : Colors.red;
+  }
+
+  String getStatusText() {
+    return paymentStatus == "settlement"
+        ? "Sudah Dibayar"
+        : "Belum Dibayar";
   }
 
   // ===========================
@@ -127,6 +126,8 @@ class _BayarPageState extends State<BayarPage> {
   // ===========================
   @override
   Widget build(BuildContext context) {
+    final bool sudahDibayar = paymentStatus == "settlement";
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Pembayaran Parkir"),
@@ -136,7 +137,6 @@ class _BayarPageState extends State<BayarPage> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            // ================= QR IMAGE =================
             Image.network(
               qrUrl,
               width: 220,
@@ -144,31 +144,29 @@ class _BayarPageState extends State<BayarPage> {
               fit: BoxFit.contain,
             ),
             const SizedBox(height: 20),
-
             const Text(
               "Scan QR untuk melanjutkan pembayaran",
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16),
             ),
-
             const SizedBox(height: 20),
 
-            // ================= OPEN BUTTON =================
+            // ===== BUKA QRIS =====
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: openPayment,
+                onPressed: sudahDibayar ? null : openPayment,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF6A994E),
+                  foregroundColor: Colors.black,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
-                child: const Text("Buka QRIS", style: TextStyle(fontSize: 18)),
+                child: const Text("Buka QRIS"),
               ),
             ),
 
             const SizedBox(height: 25),
 
-            // ================= TOTAL & STATUS =================
+            // ===== INFO PEMBAYARAN =====
             Row(
               children: [
                 Expanded(
@@ -199,9 +197,9 @@ class _BayarPageState extends State<BayarPage> {
                       padding: const EdgeInsets.all(20),
                       child: Column(
                         children: [
-                          const Text("Status"),
+                          const Text("Pembayaran"),
                           Text(
-                            paymentStatus.toUpperCase(),
+                            getStatusText(),
                             style: TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
@@ -218,56 +216,48 @@ class _BayarPageState extends State<BayarPage> {
 
             const SizedBox(height: 25),
 
-            // ================= REFRESH =================
+            // ===== MUAT ULANG STATUS =====
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: invoiceId.isEmpty ? null : refreshStatus,
+                onPressed: refreshStatus,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey[700],
+                  backgroundColor: Colors.orange,
+                  foregroundColor: Colors.black,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
-                child: const Text("Refresh Status"),
+                child: const Text("Muat Ulang Status"),
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
-// =========================
-// HALAMAN SUKSES
-// =========================
-class BayarSukses extends StatelessWidget {
-  const BayarSukses({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.check_circle, size: 120, color: Color(0xFF6A994E)),
-            const SizedBox(height: 20),
-            const Text(
-              "Pembayaran Berhasil!",
-              style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-            ),
             const SizedBox(height: 15),
-            ElevatedButton(
-              onPressed: () => Get.offAllNamed('/home'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6A994E),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 40,
-                  vertical: 14,
+
+            // ===== SELESAI =====
+            if (sudahDibayar)
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    // Hapus semua page sampai MainScreen
+                    Navigator.popUntil(context, (route) => route.isFirst);
+
+                    // Panggil MainScreen dengan riwayat
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const MainScreen(),
+                        settings: const RouteSettings(arguments: "riwayat"),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6A994E),
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: const Text("Selesai"),
                 ),
               ),
-              child: const Text("Kembali ke Beranda"),
-            ),
           ],
         ),
       ),

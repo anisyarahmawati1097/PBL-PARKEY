@@ -29,7 +29,11 @@ class _DetailPengendaraPageState extends State<DetailPengendaraPage> {
   Future fetchKendaraan() async {
     try {
       final res = await http.get(
-        Uri.parse("http://172.20.10.3:8000/api/pengendara/${widget.userId}/kendaraan"),
+        Uri.parse(
+            "https://dottie-proaudience-harmonistically.ngrok-free.dev/api/pengendara/${widget.userId}/kendaraan"),
+        headers: {
+          "ngrok-skip-browser-warning": "anyvalue", // ✅ header penting untuk ngrok Free
+        },
       );
 
       if (res.statusCode == 200) {
@@ -46,6 +50,7 @@ class _DetailPengendaraPageState extends State<DetailPengendaraPage> {
           loading = false;
         });
       } else {
+        debugPrint("API Error: Status code ${res.statusCode}");
         setState(() => loading = false);
       }
     } catch (e) {
@@ -131,7 +136,6 @@ class _DetailPengendaraPageState extends State<DetailPengendaraPage> {
           ),
         ),
       ),
-
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -167,12 +171,9 @@ class _DetailPengendaraPageState extends State<DetailPengendaraPage> {
                 ),
               ],
             ),
-
             const SizedBox(height: 10),
-
             if (loading)
               const Center(child: CircularProgressIndicator()),
-
             if (!loading && kendaraanList.isEmpty)
               const Padding(
                 padding: EdgeInsets.only(top: 40),
@@ -183,7 +184,6 @@ class _DetailPengendaraPageState extends State<DetailPengendaraPage> {
                   ),
                 ),
               ),
-
             for (var item in kendaraanList) _buildKendaraanCard(item),
           ],
         ),

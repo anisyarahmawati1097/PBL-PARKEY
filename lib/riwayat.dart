@@ -1,8 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class RiwayatPage extends StatefulWidget {
   const RiwayatPage({super.key});
@@ -29,14 +28,13 @@ class _RiwayatPageState extends State<RiwayatPage> {
 
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString("token") ?? "";
-
     if (token.isEmpty) {
       setState(() => loading = false);
       return;
     }
 
     final url = Uri.parse(
-      "http://172.20.10.3:8000/api/parkir/aktivitas/riwayat",
+      "http://151.243.222.93:31020/api/parkir/aktivitas/riwayat",
     );
 
     try {
@@ -50,10 +48,8 @@ class _RiwayatPageState extends State<RiwayatPage> {
 
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body);
-
         if (body["status"] == "success") {
           final List list = body["data"] ?? [];
-
           setState(() {
             riwayat = list.map<Map<String, dynamic>>((p) {
               return {
@@ -99,9 +95,9 @@ class _RiwayatPageState extends State<RiwayatPage> {
   String formatRupiah(dynamic value) {
     final int number = int.tryParse(value.toString()) ?? 0;
     return "Rp ${number.toString().replaceAllMapped(
-          RegExp(r'\B(?=(\d{3})+(?!\d))'),
-          (match) => '.',
-        )}";
+      RegExp(r'\B(?=(\d{3})+(?!\d))'),
+      (match) => '.',
+    )}";
   }
 
   @override
@@ -141,7 +137,6 @@ class _RiwayatPageState extends State<RiwayatPage> {
                       itemCount: riwayat.length,
                       itemBuilder: (context, index) {
                         final item = riwayat[index];
-
                         return Container(
                           margin: const EdgeInsets.only(bottom: 16),
                           padding: const EdgeInsets.all(16),
@@ -236,10 +231,7 @@ class _RiwayatPageState extends State<RiwayatPage> {
         children: [
           Icon(icon, color: color, size: 22),
           const SizedBox(width: 10),
-          Text(
-            "$label: $value",
-            style: const TextStyle(fontSize: 14),
-          ),
+          Text("$label: $value", style: const TextStyle(fontSize: 14)),
         ],
       ),
     );

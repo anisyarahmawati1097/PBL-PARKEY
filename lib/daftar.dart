@@ -37,7 +37,7 @@ class _DaftarPageState extends State<DaftarPage> {
     }
 
     try {
-      final url = Uri.parse("http://172.20.10.3:8000/api/daftar");
+      final url = Uri.parse("http://151.243.222.93:31020/api/daftar");
 
       final response = await http.post(
         url,
